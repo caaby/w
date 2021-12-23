@@ -1,0 +1,6 @@
+#!name=Tencent DoH 
+#!desc=腾讯旗下DNSPod公共域名解析服务
+
+[General]
+dns-server = 119.29.29.29
+doh-server = https://doh.pub/dns-query
