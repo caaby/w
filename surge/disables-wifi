@@ -1,0 +1,4 @@
+#!name=Nightgingales 
+#!desc=连接到WIFI名称：Nightingales2911 将会自动断开Surge的代理连接
+[SSID Setting]
+Nightingales2911 suspend=true
