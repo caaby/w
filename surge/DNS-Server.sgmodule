@@ -3,7 +3,7 @@
 #!MANAGED-CONFIG https://github.com/Caaby/w/raw/main/surge/DNS-Server.sgmodule
 
 [General]
-dns-server = 1.2.4.8, 223.5.5.5, 223.6.6.6, 114.114.114.114, 119.29.29.29, 1.1.1.1, 8.8.8.8, system
+dns-server = 1.2.4.8, 223.5.5.5, 223.6.6.6, 114.114.114.114, 119.29.29.29, 1.1.1.1, 8.8.8.8
 
 [Host]
 iosapps.itunes.apple.com = script:dnspod
