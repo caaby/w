@@ -2,6 +2,7 @@
 #!desc=Mint
 #!MANAGED-CONFIG https://github.com/Caaby/w/raw/main/surge/Mint.sgmodule
 
+# 配置CA 证书教程 https://blog.hly0928.com/post/generate-ca-root-cert-for-surge/
 [Header Rewrite]
 # < 手机端使用知乎网页版
 # 此规则可以将知乎的请求头中的 User Agent 伪装为桌面版的 Chrome 浏览器以达到目的。
