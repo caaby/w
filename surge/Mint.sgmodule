@@ -8,6 +8,7 @@
 # 注意：此功能同时需要 Header Rewrite 和 MitM 功能支持，所以目前仅 Surge 支持此规则。
 ^https?://www.zhihu.com/question/ header-replace User-Agent Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.120 Safari/537.36
 
+# < 手机证书下载地址 https://gist.githubusercontent.com/Caaby/163006b91a676ae75ec68ffd71364ac6/raw/56a9f83cc3d4d5d1d83045fc7ed9e44e72f14567/ca.crt
 [MITM]
 skip-server-cert-verify = true
 hostname = www.zhihu.com
