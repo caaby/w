@@ -18,8 +18,7 @@ loglevel = warning
 # >> TLS Provider: default, secure-transport, network-framework, openssl (默认值: default)
 # >> tls-provider = default
 
-# >>
-隐藏 VPN 图标
+# >> 隐藏 VPN 图标
 hide-vpn-icon = true
 
 # >> GeoIP 数据库
