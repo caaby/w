@@ -13,7 +13,7 @@ http-api-tls = true
 http-api-web-dashboard = true
 
 # > 日志等级 warning, notify, info, verbose (默认值: notify)
-loglevel = warning
+loglevel = verbose
 
 # > TLS Provider: default, secure-transport, network-framework, openssl (默认值: default)
 tls-provider = default
