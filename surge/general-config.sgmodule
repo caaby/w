@@ -4,19 +4,19 @@
 
 [General]
 # > HTTP API 配置
-http-api = Fang@0.0.0.0:2222
+# http-api = Fang@0.0.0.0:2222
 
 # >> HTTP-API TLS设置
-http-api-tls = true
+# http-api-tls = true
 
 # >> HTTP API 网页控制台启用
 http-api-web-dashboard = true
 
 # > 日志等级 warning, notify, info, verbose (默认值: notify)
-loglevel = verbose
+loglevel = warning
 
 # > TLS Provider: default, secure-transport, network-framework, openssl (默认值: default)
-tls-provider = default
+# tls-provider = default
 
 # > 隐藏 VPN 图标
 hide-vpn-icon = true
@@ -49,22 +49,19 @@ http-listen = 0.0.0.0:7002
 socks5-listen = 0.0.0.0:7003
 
 # > 从 /etc/hosts 读取 DNS 记录
-read-etc-hosts = true
+# read-etc-hosts = true
 
 # > 启用 Network.framework
-network-framework = true
+# network-framework = true
 
 # > 外部控制器
-external-controller-access = Fang@0.0.0.0:5555
+# external-controller-access = Fang@0.0.0.0:5555
 
 # > 兼容模式（默认为"0/禁用"）
 compatibility-mode = 0
 
 # > 错误警告显示页
 show-error-page-for-reject = true
-
-# > 共享 JS 上下文
-shared-jsvm-context = false
 
 # > 测速超时（秒）
 test-timeout = 2
@@ -79,22 +76,25 @@ proxy-test-url = http://www.gstatic.com/generate_204
 always-real-ip = *.srv.nintendo.net, *.stun.playstation.net, xbox.*.microsoft.com, *.xboxlive.com
 
 # > Hijack DNS
-hijack-dns = 8.8.8.8:53,8.8.4.4:53
+hijack-dns = 8.8.8.8:53, 8.8.4.4:53
 
 # > 公共Wi-Fi下的默认策略启用
 use-default-policy-if-wifi-not-primary = true
 
+# > 共享 JS 上下文 macOS Only
+# shared-jsvm-context = false
+
 # > TUN规则匹配模式 (默认值: false)， macOS Only
-enhanced-mode-by-rule = false
+# enhanced-mode-by-rule = false
 
 # > 代理跳过系统
-bypass-system = true
+# bypass-system = true
 
 # > 排除主机名
 exclude-simple-hostnames = true
 
 # > 跳过代理
-skip-proxy = 127.0.0.1,192.168.0.0/16,10.0.0.0/8,172.16.0.0/12,100.64.0.0/10,localhost,*.local,e.crashlytics.com,captive.apple.com,::ffff:0:0:0:0/1,::ffff:128:0:0:0/1,193.122.96.0/19,193.123.224.0/19
+skip-proxy = localhost, *.local, 0.0.0.0/8, 10.0.0.0/8, 17.0.0.0/8, 100.64.0.0/10, 127.0.0.0/8, 169.254.0.0/16, 172.16.0.0/12, 192.0.0.0/24, 192.0.2.0/24, 192.168.0.0/16, 192.88.99.0/24, 198.18.0.0/15, 198.51.100.0/24, 203.0.113.0/24, 224.0.0.0/4, 240.0.0.0/4, 255.255.255.255/32
 
 # > TCP Force HTTP Hosts
 force-http-engine-hosts = 123.59.31.1, 119.18.193.135, 122.14.246.33, 175.102.178.52, 192.30.*, 143.55.*, 140.82.*
