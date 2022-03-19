@@ -12,17 +12,22 @@
 ^https?://zhidao\.baidu\.com header-replace User-Agent Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0.2 Safari/605.1.15
 
 [URL Rewrite]
-# < 此规则可以将 Wikipedia 的请求跳转至 Wikiwand 以达到 Wikipedia 排版优化的目的。重新排版后的语言将与原页面语言保持一致。
+# 此规则可以将 Wikipedia 的请求跳转至 Wikiwand 以达到 Wikipedia 排版优化的目的。重新排版后的语言将与原页面语言保持一致。
 ^https://zh.(m.)?wikipedia.org/(zh(-\w)?) http://www.wikiwand.com/$2 302
 ^https://(\w*).(m.)?wikipedia.org/wiki http://www.wikiwand.com/$1 302
 
+# google
 ^http://*google.cn http://www.google.com header
 ^http://*google.com.hk http://www.google.com header
 
+# 微信公众号
 ^http://mp.weixin.qq.com/mp/report _ reject
 
+# 12306
+^https?+:\/\/mobile\.12306\.cn\/otsmobile\/app\/mas\/loggw\/(logUpload.do|logConfig.do) - reject
+
 [MITM]
-hostname = www.zhihu.com, *wikipedia.org, duckduckgo.com, *google.cn, *google.com.hk, *google.com,sub.store, boxer.baidu.com, api.weibo.cn, mapi.weibo.com, *.uve.weibo.com, -*.weibo.com, mp.weixin.qq.com, security.wechat.com, weixin110.qq.com, vip1.kuwo.cn, testflight.apple.com, pan.baidu.com, weather-data.apple.com, m.douban.com
+hostname = mobile.12306.cn, www.zhihu.com, *wikipedia.org, duckduckgo.com, *google.cn, *google.com.hk, *google.com,sub.store, boxer.baidu.com, api.weibo.cn, mapi.weibo.com, *.uve.weibo.com, -*.weibo.com, mp.weixin.qq.com, security.wechat.com, weixin110.qq.com, vip1.kuwo.cn, testflight.apple.com, pan.baidu.com, weather-data.apple.com, m.douban.com
 
 skip-server-cert-verify = true
 ca-passphrase = D7004A35
