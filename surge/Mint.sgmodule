@@ -17,8 +17,9 @@
 ^https://(\w*).(m.)?wikipedia.org/wiki http://www.wikiwand.com/$1 302
 
 # google
-^http://*google.cn http://www.google.com header
-^http://*google.com.hk http://www.google.com header
+https?://(www.)?g.cn https://www.google.com 302
+https?://(www.)?google.cn https://www.google.com 302
+https?://(www.)?g.com.hk https://www.google.com 302
 
 # 微信公众号
 ^http://mp.weixin.qq.com/mp/report _ reject
