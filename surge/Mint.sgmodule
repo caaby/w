@@ -16,8 +16,13 @@
 ^https://zh.(m.)?wikipedia.org/(zh(-\w)?) http://www.wikiwand.com/$2 302
 ^https://(\w*).(m.)?wikipedia.org/wiki http://www.wikiwand.com/$1 302
 
+^http://*google.cn http://www.google.com header
+^http://*google.com.hk http://www.google.com header
+
+^http://mp.weixin.qq.com/mp/report _ reject
+
 [MITM]
-hostname = www.zhihu.com, *wikipedia.org, duckduckgo.com, *.google.cn, *.google.com.hk, sub.store, boxer.baidu.com, api.weibo.cn, mapi.weibo.com, *.uve.weibo.com, -*.weibo.com, mp.weixin.qq.com, security.wechat.com, weixin110.qq.com, vip1.kuwo.cn, testflight.apple.com, pan.baidu.com, weather-data.apple.com, m.douban.com
+hostname = www.zhihu.com, *wikipedia.org, duckduckgo.com, *google.cn, *google.com.hk, *google.com,sub.store, boxer.baidu.com, api.weibo.cn, mapi.weibo.com, *.uve.weibo.com, -*.weibo.com, mp.weixin.qq.com, security.wechat.com, weixin110.qq.com, vip1.kuwo.cn, testflight.apple.com, pan.baidu.com, weather-data.apple.com, m.douban.com
 
 skip-server-cert-verify = true
 ca-passphrase = D7004A35
