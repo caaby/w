@@ -1,5 +1,0 @@
-#!name=Disables-WIFI
-#!desc=连接到下面名称的Wi-Fi网络时Surge将暂停工作
-[SSID Setting]
-// 连接到 Nightingales2911 的Wi-Fi网络时Surge暂停工作
-"Nightingales2911" suspend=true
