@@ -1,6 +1,6 @@
 #! name=腾讯 Doh
 #! desc=腾讯旗下DNSPod公共域名解析服务
-#! MANAGED-CONFIG https://gitee.com/caaby/surge/raw/main/module/tencent-doh.conf
+#! MANAGED-CONFIG=https://raw.githubusercontent.com/Caaby/w/main/surge/tencent-doh.sgmodule
 
 [General]
 doh-server = https://doh.pub/dns-query
