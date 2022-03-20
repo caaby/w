@@ -1,4 +1,4 @@
-#! name=腾讯 Doh
+#! name=腾讯 doh query
 #! desc=腾讯旗下DNSPod公共域名解析服务
 #! MANAGED-CONFIG=https://raw.githubusercontent.com/Caaby/w/main/surge/tencent-doh.sgmodule
 
