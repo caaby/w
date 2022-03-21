@@ -23,7 +23,7 @@ RULE-SET, https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/
 # 后续规则修正
 RULE-SET,https://raw.githubusercontent.com/DivineEngine/Profiles/master/Surge/Ruleset/Unbreak.list,  DIRECT
 
-# Apple 服务
+# Apple 直连服务
 RULE-SET, https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Surge/Apple/Apple.list, DIRECT
 
 # 广告拦截 已包含隐私保护和广告劫持
