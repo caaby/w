@@ -1,6 +1,6 @@
 #! name=公共dns解析
 #! desc=添加公共dns解析服务 由114，腾讯，阿里云，Google提供
-#! MANAGED-CONFIG https://raw.githubusercontent.com/Caaby/w/main/surge/dns-server.sgmodule
+#! MANAGED-CONFIG https://raw.githubusercontent.com/Caaby/w/main/surge/ServerDNS.sgmodule
 
 [General]
 dns-server = system, 1.2.4.8, 223.6.6.6, 114.114.114.114, 119.29.29.29, 1.1.1.1, 8.8.8.8
