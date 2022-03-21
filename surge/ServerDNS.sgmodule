@@ -4,4 +4,4 @@
 
 # >> https://cdn.jsdelivr.net/gh/Caaby/w/surge/ServerDNS.sgmodule
 [General]
-dns-server = system, 1.2.4.8, 223.6.6.6, 114.114.114.114, 119.29.29.29, 1.1.1.1, 8.8.8.8
+dns-server = system, 223.6.6.6, 114.114.114.114, 119.29.29.29
