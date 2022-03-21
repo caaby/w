@@ -1,6 +1,6 @@
 #!name=General Config
 #!desc=通用配置
-#!MANAGED-CONFIG https://github.com/Caaby/w/raw/main/surge/general-config.sgmodule
+#!MANAGED-CONFIG https://github.com/Caaby/w/raw/main/surge/GeneralConfig.sgmodule
 
 [General]
 # >> HTTP API 配置
