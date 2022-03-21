@@ -1,8 +1,8 @@
 #!name=Break VPN
 #!desc=连接到下面名称的Wi-Fi网络时Surge将暂停工作
-#!MANAGED-CONFIG https://raw.githubusercontent.com/Caaby/w/main/surge/braek-vpn.sgmodule
+#!MANAGED-CONFIG https://raw.githubusercontent.com/Caaby/w/main/surge/BreakVPN.sgmodule
 
 [SSID Setting]
-// Nightingales
+// << Nightingales
 "Nightingales2911" suspend=true
 "Nightingales2802" suspend=true
