@@ -1,6 +1,5 @@
 #!name=China Rule
 #!desc=基础的DIRECT和REJECT规则
-#!url=https://cdn.jsdelivr.net/gh/Caaby/w/surge/ChinaRule.sgmodule
 #!MANAGED-CONFIG https://cdn.jsdelivr.net/gh/Caaby/w/surge/ChinaRule.sgmodule interval=43200 strict=true
 
 [Rule]
@@ -35,11 +34,11 @@ DOMAIN-SET,https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script/rule/Surge/A
 DOMAIN-SET,https://cdn.jsdelivr.net/gh/mieqq/mieqq/In-AppTracker.txt,REJECT-DROP
 
 # >> 中国直连
-# 1>> RULE-SET, https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script/rule/Surge/China/China.list, DIRECT
+RULE-SET, https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script/rule/Surge/China/China.list, DIRECT
 RULE-SET, https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script/rule/Surge/ChinaIPs/ChinaIPs.list, DIRECT
 
 # >> Local Area Network 局域网
-# >> RULE-SET, LAN, DIRECT
+RULE-SET, LAN, DIRECT
 
 # >> GeoIP 中国
-# >> GEOIP,CN,DIRECT
+GEOIP,CN,DIRECT
