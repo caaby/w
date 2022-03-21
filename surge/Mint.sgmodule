@@ -1,7 +1,8 @@
 #! name=Mint
 #! desc=基础Mint服务
-#! MANAGED-CONFIG https://github.com/Caaby/w/raw/main/surge/Mint.sgmodule
+#! MANAGED-CONFIG https://cdn.jsdelivr.net/gh/Caaby/w/surge/Mint.sgmodule
 
+# >> https://cdn.jsdelivr.net/gh/Caaby/w/surge/Mint.sgmodule
 // 配置CA 证书教程 https://blog.hly0928.com/post/generate-ca-root-cert-for-surge/
 [Header Rewrite]
 # //手机端使用知乎网页版
