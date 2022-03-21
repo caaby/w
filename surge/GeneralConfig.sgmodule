@@ -24,7 +24,7 @@ tls-provider = openssl
 hide-vpn-icon = true
 
 # >> 强制http引擎主机
-force-http-engine-hosts = router.com, www.router.com
+# >> force-http-engine-hosts = %APPEND% 
 
 # >> 当开启时，如果在 [Host] 段有为某主机名指定 IP，在使用代理访问该主机名时，将使用该 IP 地址进行代理请求，不再依赖远端解析。
 use-local-host-item-for-proxy = true
