@@ -28,7 +28,7 @@ RULE-SET,https://cdn.jsdelivr.net/gh/DivineEngine/Profiles/Surge/Ruleset/Unbreak
 RULE-SET, https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script/rule/Surge/Apple/Apple.list, DIRECT
 
 # >> 广告拦截 已包含隐私保护和广告劫持
-RULE-SET, https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script/rule/Surge/Advertising/Advertising.list, REJECT-DROP
+# RULE-SET, https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script/rule/Surge/Advertising/Advertising.list, REJECT-DROP
 DOMAIN-SET,https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script/rule/Surge/Advertising/Advertising_Domain.list, REJECT-DROP
 
 # >> 应用内追踪
