@@ -23,6 +23,9 @@ tls-provider = openssl
 # >> 隐藏 VPN 图标
 hide-vpn-icon = true
 
+# >> 强制http引擎主机
+force-http-engine-hosts = router.com, www.router.com
+
 # >> GeoIP 数据库
 geoip-maxmind-url = https://cdn.jsdelivr.net/gh/Loyalsoldier/geoip@release/Country.mmdb
 # >> geoip-maxmind-url = https://cdn.jsdelivr.net/gh/Hackl0us/GeoIP2-CN@release/Country.mmdb
