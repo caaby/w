@@ -39,7 +39,7 @@ DOMAIN-SET,https://cdn.jsdelivr.net/gh/mieqq/mieqq/In-AppTracker.txt,REJECT-DROP
 RULE-SET, https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script/rule/Surge/ChinaIPs/ChinaIPs.list, DIRECT
 
 # >> Local Area Network 局域网
-RULE-SET, LAN, DIRECT
+# >> RULE-SET, LAN, DIRECT
 
 # >> GeoIP 中国
 GEOIP,CN,DIRECT
