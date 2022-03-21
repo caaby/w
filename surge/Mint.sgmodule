@@ -8,14 +8,14 @@
 # //手机端使用知乎网页版
 # //此规则可以将知乎的请求头中的 User Agent 伪装为桌面版的 Chrome 浏览器以达到目的。
 # //注意：此功能同时需要 Header Rewrite 和 MitM 功能支持，所以目前仅 Surge 支持此规则。
-^https?://www.zhihu.com/question/ header-replace User-Agent Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.120 Safari/537.36
+^https?:\/\/www\.zhihu\.com\/question\/ header-replace User-Agent Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.120 Safari/537.36
 
 # //百度知道
-^https?://zhidao\.baidu\.com header-replace User-Agent Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0.2 Safari/605.1.15
+^https?:\/\/zhidao\.baidu\.com header-replace User-Agent Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0.2 Safari/605.1.15
 
 
 [MITM]
-hostname = %APPEND% mobile.12306.cn, www.zhihu.com, *wikipedia.org, duckduckgo.com, *google.cn, *google.com.hk, *google.com,sub.store, boxer.baidu.com, api.weibo.cn, mapi.weibo.com, *.uve.weibo.com, -*.weibo.com, mp.weixin.qq.com, security.wechat.com, weixin110.qq.com, vip1.kuwo.cn, testflight.apple.com, pan.baidu.com, weather-data.apple.com, m.douban.com
+hostname = %APPEND% mobile.12306.cn, www.zhihu.com, *wikipedia.org, duckduckgo.com, sub.store, boxer.baidu.com, api.weibo.cn, mapi.weibo.com, *.uve.weibo.com, -*.weibo.com, mp.weixin.qq.com, security.wechat.com, weixin110.qq.com, vip1.kuwo.cn, testflight.apple.com, pan.baidu.com, weather-data.apple.com, m.douban.com
 
 skip-server-cert-verify = true
 ca-passphrase = D7004A35
