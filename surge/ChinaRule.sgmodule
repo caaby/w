@@ -1,5 +1,6 @@
 #!name=China Rule
 #!desc=基础的DIRECT和REJECT规则
+#!url=https://cdn.jsdelivr.net/gh/Caaby/w/surge/ChinaRule.sgmodule
 #!MANAGED-CONFIG https://cdn.jsdelivr.net/gh/Caaby/w/surge/ChinaRule.sgmodule interval=43200 strict=true
 
 # >> https://cdn.jsdelivr.net/gh/Caaby/w/surge/ChinaRule.sgmodule
@@ -18,28 +19,28 @@ PROCESS-NAME,uTorrent, DIRECT
 PROCESS-NAME,WebTorrent, DIRECT
 PROCESS-NAME,WebTorrent Helper, DIRECT
 
-# 本地局域网地址
-RULE-SET, https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Surge/Lan/Lan.list, DIRECT
+# >> 本地局域网地址
+RULE-SET, https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script/rule/Surge/Lan/Lan.list, DIRECT
 
-# 后续规则修正
-RULE-SET,https://raw.githubusercontent.com/DivineEngine/Profiles/master/Surge/Ruleset/Unbreak.list,  DIRECT
+# >> 后续规则修正
+RULE-SET,https://cdn.jsdelivr.net/gh/DivineEngine/Profiles/Surge/Ruleset/Unbreak.list,  DIRECT
 
-# Apple 直连服务
-RULE-SET, https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Surge/Apple/Apple.list, DIRECT
+# >> Apple 直连服务
+RULE-SET, https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script/rule/Surge/Apple/Apple.list, DIRECT
 
-# 广告拦截 已包含隐私保护和广告劫持
-RULE-SET, https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Surge/Advertising/Advertising.list, REJECT-DROP
-DOMAIN-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Surge/Advertising/Advertising_Domain.list, REJECT-DROP
+# >> 广告拦截 已包含隐私保护和广告劫持
+RULE-SET, https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script/rule/Surge/Advertising/Advertising.list, REJECT-DROP
+DOMAIN-SET,https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script/rule/Surge/Advertising/Advertising_Domain.list, REJECT-DROP
 
-# 应用内追踪
-DOMAIN-SET,https://raw.githubusercontent.com/mieqq/mieqq/master/In-AppTracker.txt,REJECT-DROP
+# >> 应用内追踪
+DOMAIN-SET,https://cdn.jsdelivr.net/gh/mieqq/mieqq/In-AppTracker.txt,REJECT-DROP
 
-# 中国直连
-RULE-SET, https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Surge/China/China.list, DIRECT
-RULE-SET, https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Surge/ChinaIPs/ChinaIPs.list, DIRECT
+# >> 中国直连
+RULE-SET, https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script/rule/Surge/China/China.list, DIRECT
+RULE-SET, https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script/rule/Surge/ChinaIPs/ChinaIPs.list, DIRECT
 
-# Local Area Network 局域网
+# >> Local Area Network 局域网
 RULE-SET, LAN, DIRECT
 
-# GeoIP 中国
+# >> GeoIP 中国
 GEOIP,CN,DIRECT
