@@ -1,0 +1,44 @@
+#!name=China Rule
+#!desc=基础的DIRECT和REJECT规则
+#!MANAGED-CONFIG https://github.com/Caaby/w/raw/main/surge/ChinaRule.sgmodule
+
+[Rule]
+# Client(仅 macOS)
+PROCESS-NAME,UUBooster, DIRECT
+
+# > Download (仅 macOS)
+PROCESS-NAME,aria2c, DIRECT
+PROCESS-NAME,fdm, DIRECT
+PROCESS-NAME,Folx, DIRECT
+PROCESS-NAME,NetTransport, DIRECT
+PROCESS-NAME,Thunder, DIRECT
+PROCESS-NAME,Transmission, DIRECT
+PROCESS-NAME,uTorrent, DIRECT
+PROCESS-NAME,WebTorrent, DIRECT
+PROCESS-NAME,WebTorrent Helper, DIRECT
+
+# 本地局域网地址
+RULE-SET, https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Surge/Lan/Lan.list, DIRECT
+
+# 后续规则修正
+RULE-SET,https://raw.githubusercontent.com/DivineEngine/Profiles/master/Surge/Ruleset/Unbreak.list,  DIRECT
+
+# Apple 服务
+RULE-SET, https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Surge/Apple/Apple.list, DIRECT
+
+# 广告拦截 已包含隐私保护和广告劫持
+RULE-SET, https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Surge/Advertising/Advertising.list, REJECT-DROP
+DOMAIN-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Surge/Advertising/Advertising_Domain.list, REJECT-DROP
+
+# 应用内追踪
+DOMAIN-SET,https://raw.githubusercontent.com/mieqq/mieqq/master/In-AppTracker.txt,REJECT-DROP
+
+# 中国直连
+RULE-SET, https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Surge/China/China.list, DIRECT
+RULE-SET, https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Surge/ChinaIPs/ChinaIPs.list, DIRECT
+
+# Local Area Network 局域网
+RULE-SET, LAN, DIRECT
+
+# GeoIP 中国
+GEOIP,CN,DIRECT
