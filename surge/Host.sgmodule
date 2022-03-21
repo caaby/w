@@ -3,10 +3,6 @@
 #!MANAGED-CONFIG https://cdn.jsdelivr.net/gh/Caaby/w/surge/Host.sgmodule interval=43200 strict=true
 
 [Host]
-
-# >> route
-router.com = router
-
 # >> Firebase Cloud Messaging
 mtalk.google.com = 108.177.125.188
 
