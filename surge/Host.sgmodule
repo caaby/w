@@ -4,6 +4,9 @@
 
 [Host]
 
+# >> route
+router.com = router
+
 # >> Firebase Cloud Messaging
 mtalk.google.com = 108.177.125.188
 
