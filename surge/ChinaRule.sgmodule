@@ -17,25 +17,25 @@ PROCESS-NAME,uTorrent, DIRECT
 PROCESS-NAME,WebTorrent, DIRECT
 PROCESS-NAME,WebTorrent Helper, DIRECT
 
-# >> 本地局域网地址
-RULE-SET, https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script/rule/Surge/Lan/Lan.list, DIRECT
+#>> Unbreak 后续规则修正
+RULE-SET,https://raw.githubusercontent.com/DivineEngine/Profiles/master/Surge/Ruleset/Unbreak.list, DIRECT
 
-# >> 后续规则修正
-RULE-SET,https://cdn.jsdelivr.net/gh/DivineEngine/Profiles/Surge/Ruleset/Unbreak.list, DIRECT
+#>> Advertising 广告
+RULE-SET,https://raw.githubusercontent.com/DivineEngine/Profiles/master/Surge/Ruleset/Guard/Advertising.list, REJECT-DROP
+DOMAIN-SET,https://raw.githubusercontent.com/DivineEngine/Profiles/master/Surge/Ruleset/Guard/AdvertisingPlus.list, REJECT-DROP
 
-# >> Apple 直连服务
-RULE-SET, https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script/rule/Surge/Apple/Apple.list, DIRECT
+#>> Privacy 隐私
+# RULE-SET,https://raw.githubusercontent.com/DivineEngine/Profiles/master/Surge/Ruleset/Guard/Privacy.list, REJECT-DROP
 
-# >> 广告拦截 已包含隐私保护和广告劫持
-RULE-SET, https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script/rule/Surge/Advertising/Advertising.list, REJECT-DROP
-DOMAIN-SET,https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script/rule/Surge/Advertising/Advertising_Domain.list, REJECT-DROP
+#>> Hijacking 运营商劫持或恶意网站
+RULE-SET,https://raw.githubusercontent.com/DivineEngine/Profiles/master/Surge/Ruleset/Guard/Hijacking.list, REJECT-DROP
 
-# >> 应用内追踪
-DOMAIN-SET,https://cdn.jsdelivr.net/gh/mieqq/mieqq/In-AppTracker.txt, REJECT-DROP
+#>>Apple 国内服务
+RULE-SET,https://raw.githubusercontent.com/DivineEngine/Profiles/master/Surge/Ruleset/Extra/Apple/Apple.list, DIRECT
 
-# >> 中国直连
-RULE-SET, https://cdn.jsdelivr.net/gh/DivineEngine/Profiles/Surge/Ruleset/China.list, DIRECT
+#>> China 中国直连
+RULE-SET,https://raw.githubusercontent.com/DivineEngine/Profiles/master/Surge/Ruleset/China.list, DIRECT
 RULE-SET, https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script/rule/Surge/ChinaIPs/ChinaIPs.list, DIRECT
 
-# >> Local Area Network 局域网
+#>> Local Area Network 局域网
 RULE-SET, LAN, DIRECT
