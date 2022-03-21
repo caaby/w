@@ -30,7 +30,7 @@ DOMAIN-SET,https://raw.githubusercontent.com/DivineEngine/Profiles/master/Surge/
 #>> Hijacking 运营商劫持或恶意网站
 RULE-SET,https://raw.githubusercontent.com/DivineEngine/Profiles/master/Surge/Ruleset/Guard/Hijacking.list, REJECT-DROP
 
-#>>Apple 国内服务
+#>> Apple 国内服务
 RULE-SET,https://raw.githubusercontent.com/DivineEngine/Profiles/master/Surge/Ruleset/Extra/Apple/Apple.list, DIRECT
 
 #>> China 中国直连
