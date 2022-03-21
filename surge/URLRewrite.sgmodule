@@ -10,28 +10,16 @@
 // 不能使用 HTTPS Scheme 重定向。而且也不能重定向 HTTPS 请求。
 
 [URL Rewrite]
-# >> Redirect Google search
-#^https?://(.*?[.])?(?:g|google).cn https://$1google.com 302
-#^https?://(.*?[.])?(?:g|google).com.hk https://$1google.com 302
-# Redirect Google service
-#^https?://(www.)?google\.cn https://www.google.com 302
-#^https?://(www.)?g\.cn https://www.google.com 302
-
-^https?:\/\/(www.)?(g|google)\.cn https://www.google.com 302
+# Redirect Google Maps Service
+^https?:\/\/(ditu|maps)\.google\.cn https://maps.google.com 302
 (^https?:\/\/.+\.googlevideo\.com\/.+)(&ctier=[A-Z])(&.+) $1$3 302
 
 # >> 此规则可以将 Wikipedia 的请求跳转至 Wikiwand 以达到 Wikipedia 排版优化的目的。重新排版后的语言将与原页面语言保持一致。
-^https://zh.(m.)?wikipedia.org/(zh(-\w)?) http://www.wikiwand.com/$2 302
-^https://(\w*).(m.)?wikipedia.org/wiki http://www.wikiwand.com/$1 302
+^https?:\/\/zh.(m.)?wikipedia\.org\/(zh(-\w)?) http://www.wikiwand.com/$2 302
+^https?:\/\/(\w*).(m.)?wikipedia\.org\/wiki http://www.wikiwand.com/$1 302
 
 # >> 12306
 ^https?+:\/\/mobile\.12306\.cn\/otsmobile\/app\/mas\/loggw\/(logUpload.do|logConfig.do) - reject
-
-# Redirect Google Search Service
-^https?:\/\/(www.)?(g|google)\.cn https://www.google.com 302
-
-# Redirect Google Maps Service
-^https?:\/\/(ditu|maps).google\.cn https://maps.google.com 302
 
 # Redirect HTTP to HTTPS
 ^https?:\/\/(www.)?taobao\.com\/ https://taobao.com/ 302
@@ -100,9 +88,6 @@
 # AICoin
 ^http:\/\/(www.)?aicoin\.cn\/$ https://www.aicoin.com/ 302
 
-# Block Ads Start
-
-# Block Ads End
 
 [MITM]
-hostname = %APPEND% *google.cn, www.google.com.hk, mobile.12306.cn, *.wikipedia.org,*.googlevideo, www.firefox.com.cn, api.abema.io
+hostname = %APPEND%  mobile.12306.cn, *.wikipedia.org, *.googlevideo, www.firefox.com.cn, api.abema.io
