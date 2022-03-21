@@ -34,7 +34,8 @@ DOMAIN-SET,https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script/rule/Surge/A
 DOMAIN-SET,https://cdn.jsdelivr.net/gh/mieqq/mieqq/In-AppTracker.txt,REJECT-DROP
 
 # >> 中国直连
-RULE-SET, https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script/rule/Surge/China/China.list, DIRECT
+RULE-SET, https://raw.githubusercontent.com/Caaby/w/main/China.list, DIRECT
+# >>RULE-SET, https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script/rule/Surge/China/China.list, DIRECT
 RULE-SET, https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script/rule/Surge/ChinaIPs/ChinaIPs.list, DIRECT
 
 # >> Local Area Network 局域网
