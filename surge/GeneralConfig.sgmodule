@@ -52,7 +52,7 @@ http-listen = 0.0.0.0:7002
 socks5-listen = 0.0.0.0:7003
 
 # >> 从 /etc/hosts 读取 DNS 记录
-# >> read-etc-hosts = true
+read-etc-hosts = true
 
 # >> 启用 Network.framework
 # >> network-framework = true
@@ -108,3 +108,18 @@ tun-included-routes = 192.168.1.12/32
 
 # >> Surge VIF 只能处理 TCP 和 UDP 协议。使用此选项可以绕过特定的 IP 范围，允许所有流量通过。
 tun-excluded-routes = 192.168.0.0/16, 10.0.0.0/8, 172.16.0.0/12
+
+[Replica]
+# >> 抓取流量 => 过滤器
+# >> 隐藏 Apple 请求
+hide-apple-request = false
+
+# >> 隐藏 Crash Reporter 请求
+hide-crash-reporter-request = true
+
+# >> 隐藏 UDP 会话
+hide-udp = false
+
+# >> 关键词过滤器
+keyword-filter-type = none
+keyword-filter = icloud, ocsp, logs, analytic
