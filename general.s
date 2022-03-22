@@ -13,26 +13,8 @@ http-api-tls = true
 # >> HTTP API 网页控制台启用
 http-api-web-dashboard = true
 
-# >> 日志等级 warning, notify, info, verbose (默认值: notify)
-loglevel = warning
-
-# >> TLS Provider: default, secure-transport, network-framework, openssl (默认值: default)
-tls-provider = openssl
-
 # >> 隐藏 VPN 图标
 hide-vpn-icon = true
-
-# >> IPv6 支持（默认关闭
-ipv6 = true
-
-# >> 允许热点共享
-# allow-hotspot-access = true
-
-# >> Wi-Fi Assist 开启时，支持使用数据网络进行后备 DNS 查询
-wifi-assist = true
-
-# >> 允许 Wi-Fi 网络下其它设备访问 iOS端HTTP代理服务端口默认6152 SOCKS5代理服务端口默认6153
-allow-wifi-access = true
 
 # >> 从 /etc/hosts 读取 DNS 记录
 read-etc-hosts = true
@@ -42,15 +24,6 @@ exclude-simple-hostnames = true
 
 # >> 错误警告显示页
 show-error-page-for-reject = true
-
-# >> 测速超时（秒）
-test-timeout = 3
-
-# >> 网络测试 URL
-internet-test-url = http://wifi.vivo.com.cn/generate_204
-
-# >> 代理测速 URL
-proxy-test-url = http://www.gstatic.com/generate_204
 
 # >> Hijack DNS
 hijack-dns = 8.8.8.8:53, 8.8.4.4:53
