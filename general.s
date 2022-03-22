@@ -1,4 +1,4 @@
-#! name=General Config
+#! name=General
 #! desc=通用配置 包含General，Replica，MitM
 #! MANAGED-CONFIG https://raw.githubusercontent.com/caaby/w/surge/general.s
 
@@ -55,7 +55,7 @@ read-etc-hosts = true
 # >> 启用 Network.framework
 # >> 启动 Network.framework 以开启用户态网络协议栈，可提高吞吐量，降低延迟并开启 MPTCP。（需手动重启 Surge) 实验性功能可能导致 Surge 不稳定，甚至引起系统崩溃。
 # >> 默认开启：true ，可根据自己的需求选择关闭：false 。
-network-framework = true
+network-framework = false
 
 # >> 排除简单主机名
 exclude-simple-hostnames = true
