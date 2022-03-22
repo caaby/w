@@ -32,7 +32,7 @@ use-local-host-item-for-proxy = true
 ipv6 = false
 
 # >> 允许热点共享
-allow-hotspot-access = true
+# allow-hotspot-access = true
 
 # >> Wi-Fi Assist 开启时，支持使用数据网络进行后备 DNS 查询
 wifi-assist = true
