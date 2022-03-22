@@ -1,6 +1,6 @@
 #### 个人使用
 1. 订阅文件  
-    https://raw.githubusercontent.com/Caaby/w/surge/c.conf
+    https://raw.githubusercontent.com/caaby/w/surge/c.conf
 2. 国内以及广告规则  
     https://raw.githubusercontent.com/caaby/w/surge/china_rule.s
 3. host  
