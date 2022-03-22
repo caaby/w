@@ -31,14 +31,14 @@ use-local-host-item-for-proxy = true
 # >> IPv6 支持（默认关闭
 ipv6 = false
 
+# >> 允许热点共享
+allow-hotspot-access = true
+
 # >> Wi-Fi Assist 开启时，支持使用数据网络进行后备 DNS 查询
 wifi-assist = true
 
 # >> 允许 Wi-Fi 网络下其它设备访问
 allow-wifi-access = true
-
-# >> 允许热点共享
-allow-hotspot-access = true
 
 # >> iOS 端 HTTP 代理服务端口（默认为"6152"）
 wifi-access-http-port = 7000
