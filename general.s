@@ -38,7 +38,7 @@ wifi-assist = true
 allow-wifi-access = true
 
 # >> 允许热点共享
-allow-hostspot-access = true
+allow-hotspot-access = true
 
 # >> iOS 端 HTTP 代理服务端口（默认为"6152"）
 wifi-access-http-port = 7000
