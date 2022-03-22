@@ -1,6 +1,6 @@
-#!name=Hosts
-#!desc=基础的Hosts规则
-#!MANAGED-CONFIG https://raw.githubusercontent.com/Caaby/w/surge/Host.sgmodule interval=43200 strict=true
+#! name=Hosts
+#! desc=基础的Hosts规则
+#! MANAGED-CONFIG https://raw.githubusercontent.com/Caaby/w/surge/host.s
 
 [Host]
 # >> Firebase Cloud Messaging

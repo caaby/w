@@ -1,6 +1,6 @@
 #!name=China Rule
 #!desc=基础的DIRECT和REJECT规则
-#!MANAGED-CONFIG https://cdn.jsdelivr.net/gh/Caaby/w/surge/ChinaRule.sgmodule interval=43200 strict=true
+#!MANAGED-CONFIG https://cdn.jsdelivr.net/gh/Caaby/w/surge/china_rule.s interval=43200 strict=true
 
 [Rule]
 # Client(仅 macOS)

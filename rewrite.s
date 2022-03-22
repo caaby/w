@@ -1,6 +1,6 @@
-#!name=URL Rewrite
-#!desc=URL Rewrite 重定向
-#!MANAGED-CONFIG https://raw.githubusercontent.com/Caaby/w/surge/Rewrite.sgmodule
+#!name=Rewrite
+#!desc= URL Rewrite AND Header Rewrite 重定向
+#!MANAGED-CONFIG https://raw.githubusercontent.com/Caaby/w/surge/rewrite.s
 
 
 [URL Rewrite]
@@ -45,5 +45,5 @@
 # >> 百度知道
 ^https?:\/\/zhidao\.baidu\.com header-replace User-Agent Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0.2 Safari/605.1.15
 
-[MitM]
+[MITM]
 hostname = %APPEND%  www.zhihu.com, www.zhidao.com, *.google.cn, *.googlevideo.com, www.officesoftcn.com, wwww.abbyychina.com, mobile.12306.cn, *.wikipedia.org, *.googlevideo, www.firefox.com.cn, api.abema.io
