@@ -7,7 +7,7 @@
 http-api = Fang@0.0.0.0:2222
 
 # >> HTTP-API TLS设置
-http-api-tls = true
+# >> http-api-tls = true
 
 # >> HTTP API 网页控制台启用
 http-api-web-dashboard = true
@@ -36,6 +36,9 @@ wifi-assist = true
 
 # >> 允许 Wi-Fi 网络下其它设备访问
 allow-wifi-access = true
+
+# >> 允许热点共享
+allow-hostspot-access = true
 
 # >> iOS 端 HTTP 代理服务端口（默认为"6152"）
 wifi-access-http-port = 7000
@@ -74,6 +77,7 @@ test-timeout = 3
 
 # >> 网络测试 URL
 internet-test-url = http://wifi.vivo.com.cn/generate_204
+internet-test-url = http://captive.apple.com
 
 # >> 代理测速 URL
 proxy-test-url = http://www.gstatic.com/generate_204
