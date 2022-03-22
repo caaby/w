@@ -1,9 +1,0 @@
-#!name=Break VPN
-#!desc=连接到下面名称的Wi-Fi网络时Surge将暂停工作
-#!MANAGED-CONFIG https://cdn.jsdelivr.net/gh/Caaby/w/surge/BreakVPN.sgmodule
-
-# >> https://cdn.jsdelivr.net/gh/Caaby/w/surge/BreakVPN.sgmodule
-[SSID Setting]
-# >> Nightingales
-"Nightingales2911" suspend=true
-"Nightingales2802" suspend=true
