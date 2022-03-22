@@ -7,7 +7,7 @@
 http-api = Fang@0.0.0.0:2222
 
 # >> HTTP-API TLS设置
-http-api-tls = true
+http-api-tls = false
 
 # >> HTTP API 网页控制台启用
 http-api-web-dashboard = true
