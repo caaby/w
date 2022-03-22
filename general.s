@@ -1,7 +1,6 @@
 #! name=General Config
 #! desc=通用配置 包含General，Replica，MitM
-#! url=https://raw.githubusercontent.com/Caaby/w/surge/GeneralConfig.sgmodule
-#! MANAGED-CONFIG https://raw.githubusercontent.com/Caaby/w/surge/general.s
+#! MANAGED-CONFIG https://raw.githubusercontent.com/caaby/w/surge/general.s
 
 [General]
 # >> HTTP API 配置

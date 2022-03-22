@@ -1,6 +1,6 @@
 #!name=Rewrite
 #!desc= URL Rewrite AND Header Rewrite 重定向
-#!MANAGED-CONFIG https://raw.githubusercontent.com/Caaby/w/surge/rewrite.s
+#!MANAGED-CONFIG https://raw.githubusercontent.com/caaby/w/surge/rewrite.s
 
 
 [URL Rewrite]
