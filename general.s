@@ -25,6 +25,9 @@ hide-vpn-icon = true
 # >> IPv6 支持（默认关闭
 ipv6 = true
 
+# >> 允许热点共享
+# allow-hotspot-access = true
+
 # >> Wi-Fi Assist 开启时，支持使用数据网络进行后备 DNS 查询
 wifi-assist = true
 
@@ -87,8 +90,6 @@ use-local-host-item-for-proxy = true
 # >> 如果没有代理服务器支持 UDP 转发，可修改为「 direct 」或注释下条，但需注意同一目标主机名 TCP 请求与 UDP 请求的源地址不同所造成的隐私及安全风险。
 # >> udp-policy-not-supported-behaviour = reject
 
-# >> 允许热点共享
-# allow-hotspot-access = true
 
 [Replica]
 # >> 抓取流量 => 过滤器
