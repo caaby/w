@@ -1,6 +1,7 @@
-#! name=Hosts
-#! desc=基础的Hosts规则
-#! MANAGED-CONFIG https://raw.githubusercontent.com/caaby/w/surge/host.s
+#!name=Hosts
+#!desc=基础的Hosts规则
+#!system=ios
+#!url=https://raw.githubusercontent.com/caaby/w/surge/host.s
 
 [Host]
 # >> Firebase Cloud Messaging
