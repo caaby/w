@@ -1,5 +1,5 @@
 #!name=公共dns解析
-#!desc=添加公共dns解析服务 由114，腾讯，阿里云，Google提供
+#!desc=添加公共dns解析服务 由114,腾讯,阿里云提供
 #!url=https://raw.githubusercontent.com/caaby/w/surge/dns.s
 
 [General]
