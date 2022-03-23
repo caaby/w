@@ -21,18 +21,17 @@ const v4IP = v4.primaryAddress;
     const ip = v4IP;
     const router = wifi.ssid ? v4.primaryRouter : undefined;
 
-    //const resp = await $http.get("https://api.my-ip.io/ip");
-    const resp = await $http.get("https://ip.cn/api/index?type=0");
-    const jsonData = JSON.parse(resp.body);
-    //const externalIP = resp.body;
+    const resp = await $http.get("https://api.my-ip.io/ip");
+    //const resp = await $http.get("https://ip.cn/api/index?type=0");
+    //const jsonData = JSON.parse(resp.body);
+    const externalIP = resp.body;
     //const externalIP = jsonData.ip;
 
     const body = {
         title: wifi.ssid || "蜂窝数据",
         content: `IP：${ip} \n`
             + (wifi.ssid ? `路由器地址：${router}\n` : "")
-            + `外部 IP：${jsonData.ip} \n`
-            + `IP地址：${jsonData.address}`,
+            + `外部 IP：${externalIP}`,
         icon: wifi.ssid ? "wifi" : "antenna.radiowaves.left.and.right"
     };
     $.done(body);
