@@ -5,7 +5,7 @@
 
 [Host]
 # >> Firebase Cloud Messaging
-mtalk.google.com = 108.177.125.188
+mtalk.google.com = server:119.29.29.29
 
 # >> Google Dl
 dl.google.com = server:119.29.29.29
@@ -14,6 +14,13 @@ update.googleapis.com = server:119.29.29.29
 
 # >> PlayStation
 *.dl.playstation.net = server:119.29.29.29
+
+# >> Apple TestFlight
+*testflight.apple.com = server:8.8.4.4
+
+# Github
+github.com = server:8.8.4.4
+raw.githubusercontent.com = server:8.8.4.4
 
 # >> Router Admin Panel
 amplifi.lan = server:syslib // Ubiquiti Amplifi Router
@@ -32,10 +39,3 @@ tplogin.cn = server:syslib // TP-Link Router
 tplinklogin.net = server:syslib // TP-Link Router
 melogin.cn = server:syslib // MERCURY Router
 falogin.cn = server:syslib // FAST Router
-
-# >> Apple TestFlight
-*testflight.apple.com = server:8.8.4.4
-
-# Github
-github.com = server:4.2.2.1
-raw.githubusercontent.com = server:4.2.2.1
