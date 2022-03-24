@@ -3,4 +3,4 @@
 #!url=https://raw.githubusercontent.com/caaby/w/surge/dns.s
 
 [General]
-dns-server = system, 223.6.6.6, 114.114.114.114, 119.29.29.29
+dns-server = 80.80.80.80, 240c::6666, 119.29.29.29, 8.8.8.8
