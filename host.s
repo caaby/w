@@ -35,3 +35,7 @@ falogin.cn = server:syslib // FAST Router
 
 # >> Apple TestFlight
 *testflight.apple.com = server:8.8.4.4
+
+# Github
+github.com = server:4.2.2.1
+raw.githubusercontent.com = server:4.2.2.1
