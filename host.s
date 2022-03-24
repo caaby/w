@@ -16,11 +16,11 @@ update.googleapis.com = server:119.29.29.29
 *.dl.playstation.net = server:119.29.29.29
 
 # >> Apple TestFlight
-*testflight.apple.com = server:8.8.4.4
+*testflight.apple.com = server:9.9.9.9
 
 # Github
-github.com = server:8.8.4.4
-raw.githubusercontent.com = server:8.8.4.4
+github.com = server:9.9.9.9
+raw.githubusercontent.com = server:9.9.9.9
 
 # >> Router Admin Panel
 amplifi.lan = server:syslib // Ubiquiti Amplifi Router
