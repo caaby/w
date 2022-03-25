@@ -1,5 +1,5 @@
-#!name=wifi and hotspot access
-#!desc=允许wifi访问，可用于http和socks5代理
+#!name=Allow WiFi Hotspot Access
+#!desc=允许wifi,手机热点访问，可用于http和socks5代理
 #!url=https://raw.githubusercontent.com/caaby/w/surge/access.s
 
 [General]
