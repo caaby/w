@@ -3,4 +3,6 @@
 #!url=https://raw.githubusercontent.com/caaby/w/surge/dns.s
 
 [General]
-dns-server = 162.14.132.76, 80.80.80.80, 240c::6666, 119.29.29.29
+# >> 代理请求本地DNS映射
+use-local-host-item-for-proxy = true
+dns-server = 162.14.132.76, 80.80.80.80, 240c::6666, 119.29.29.29,system
