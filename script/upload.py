@@ -38,5 +38,8 @@ if __name__ == '__main__':
     }
     print(config)
     seven_cattle = SevenCattle(**config)
+    with open("c.conf") as f:
+        print(f.read())
+
     seven_cattle.upload('c.conf', 'surge')
 
