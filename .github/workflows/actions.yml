@@ -35,7 +35,7 @@ jobs:
       run: |
        python script/upload.py
 
-    - shell: cmd
+    - shell: bash
       env:
         SUPER_SECRET: ${{ secrets.QINIU_AK }}
       run: |
