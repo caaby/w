@@ -16,16 +16,12 @@ class SevenCattle:
         """
         :param access_key:
         :param secret_key:
-        :param domain:
         :param bucket_name:
         """
-        need_key = ('access_key', 'secret_key', 'domain', 'bucket_name')
-        for key in need_key:
-            val = kwargs.get(key, None)
-            if not val:
-                raise ValueError('{} is necessary.'.format(key))
-            setattr(self, key, val)
 
+        self.access_key = kwargs.get("access_key")
+        self.secret_key = kwargs.get("secret_key")
+        self.bucket_name = kwargs.get("bucket_name")
         self._q = Auth(self.access_key, self.secret_key)
 
     def upload(self, source_file_path, save_file_name):
