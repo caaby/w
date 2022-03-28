@@ -31,7 +31,8 @@ class SevenCattle:
         :return:
         """
         token = self._q.upload_token(self.bucket_name, save_file_name)
-        put_data(token, source_file_path, save_file_name)
+        r, s = put_data(token, source_file_path, save_file_name)
+        print(r,s)
 
 
 if __name__ == '__main__':
