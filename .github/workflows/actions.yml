@@ -2,9 +2,9 @@ name: Actions
 on:
   push:
     branches:
-      - "master"
+      - "surge"
   pull_request:
-    branches: ["master"]
+    branches: ["surge"]
 
 jobs:
   Explore-GitHub-Actions:
