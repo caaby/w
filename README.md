@@ -32,4 +32,4 @@
 模块描述位于：https ://manual.nssurge.com/others/module.html
 
 
-![example workflow](https://github.com/caaby/w/actions/workflows/actions/badge.svg)
+![example workflow](https://github.com/caaby/w/actions/workflows/actions.yml/badge.svg)
