@@ -23,15 +23,23 @@ jobs:
         python-version: 3.7
 
     - name: 安装依赖包
-      run: pip install -r script/requirements.txt
+      run: |
+       pip install -r script/requirements.txt
 
     - name: 执行上传
-      run: python script/upload.py
       env:
         bucket: xee # 空间名称，按实际情况填写
         zone: 华南 # 存储区域，按实际情况填写 备注1
         access_key: ${{ secrets.QINIU_AK }} # 七牛云 AccessKey 备注2
         secret_key: ${{ secrets.QINIU_SK }} # 七牛云 SecretKey 备注2
+      run: |
+       python script/upload.py
+
+    - shell: cmd
+      env:
+        SUPER_SECRET: ${{ secrets.QINIU_AK }}
+      run: |
+        example-command "%SUPER_SECRET%"
 #        local_dir: / # 本地文件夹
 #        local_exclude: "**/.github/**, **/*.s, **/*.js, **/*.md, **/*.crt" # 要排除的内容，要符合 glob 格式
 #        target_dir: / # 要上传到七牛云中的文件夹
