@@ -27,13 +27,14 @@ jobs:
        pip install -r script/requirements.txt
 
     - name: 执行上传
+      run: |
+        python script/upload.py
       with:
         bucket: xee # 空间名称，按实际情况填写
         zone: 华南 # 存储区域，按实际情况填写 备注1
         access_key: ${{ secrets.QINIU_AK }} # 七牛云 AccessKey 备注2
         secret_key: ${{ secrets.QINIU_SK }} # 七牛云 SecretKey 备注2
-      run: |
-       python script/upload.py
+
     - name: Test printing your secret (Remove this step in production)
       run: cat $HOME/secrets/my_secret.json
 #        local_dir: / # 本地文件夹
