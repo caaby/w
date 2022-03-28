@@ -1,31 +1,21 @@
-from qiniu import Auth, put_data
+from qiniu import Auth, put_file, etag
 
 
-class SevenCattle:
-    """
-    单例模式七牛云文件上传
-    """
-    def __init__(self, **kwargs):
-        """
-        :param access_key:
-        :param secret_key:
-        :param bucket_name:
-        """
+def seven_cattle(**kwargs):
 
-        self.access_key = kwargs.get("access_key")
-        self.secret_key = kwargs.get("secret_key")
-        self.bucket_name = kwargs.get("bucket_name")
-        self._q = Auth(self.access_key, self.secret_key)
-
-    def upload(self, source_file_path, save_file_name):
-        """
-        :param source_file_path: 源文件路径
-        :param save_file_name: 保存至七牛云的文件名
-        :return:
-        """
-        token = self._q.upload_token(self.bucket_name, save_file_name)
-        r, s = put_data(token, source_file_path, save_file_name)
-        print(r, s)
+    # 构建鉴权对象
+    q = Auth(kwargs.get("access_key"), kwargs.get("secret_key"))
+    # 上传后保存的文件名
+    key = 'my-python-logo.png'
+    # 生成上传 Token，可以指定过期时间等
+    token = q.upload_token(kwargs.get("bucket_name"), key, 60*5)
+    # 要上传文件的本地路径
+    files = kwargs.get("files").split(",")
+    for file_path in files:
+        token = q.upload_token(bucket=kwargs.get("bucket_name"), key=file_path, expires=60 * 5)
+        ret, info = put_file(up_token=token, key=file_path, file_path=file_path, version='v2')
+        assert ret['key'] == key
+        assert ret['hash'] == etag(file_path)
 
 
 if __name__ == '__main__':
@@ -35,8 +25,9 @@ if __name__ == '__main__':
         'access_key': os.getenv("access_key"),  # 填你的access_key
         'secret_key': os.getenv("secret_key"),  # 填你的secret_key
         'bucket_name': os.getenv("bucket"),  # 填你的存储空间名称
+        'files': os.getenv("files")
     }
     print(config)
-    seven_cattle = SevenCattle(**config)
-    seven_cattle.upload('c.conf', 'c.conf')
+    seven_cattle(**config)
+
 
