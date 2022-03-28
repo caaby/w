@@ -45,5 +45,5 @@ if __name__ == '__main__':
     }
 
     seven_cattle = SevenCattle(**config)
-    seven_cattle.upload('../c.conf', 'surge')
+    seven_cattle.upload('c.conf', 'surge')
 
