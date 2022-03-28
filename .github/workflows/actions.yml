@@ -34,12 +34,8 @@ jobs:
         secret_key: ${{ secrets.QINIU_SK }} # 七牛云 SecretKey 备注2
       run: |
        python script/upload.py
-
-    - shell: bash
-      env:
-        SUPER_SECRET: ${{ secrets.QINIU_AK }}
-      run: |
-        echo "%SUPER_SECRET%"
+    - name: Test printing your secret (Remove this step in production)
+      run: cat $HOME/secrets/my_secret.json
 #        local_dir: / # 本地文件夹
 #        local_exclude: "**/.github/**, **/*.s, **/*.js, **/*.md, **/*.crt" # 要排除的内容，要符合 glob 格式
 #        target_dir: / # 要上传到七牛云中的文件夹
