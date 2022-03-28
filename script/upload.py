@@ -5,13 +5,6 @@ class SevenCattle:
     """
     单例模式七牛云文件上传
     """
-    __instance = None
-
-    def __new__(cls, **kwargs):
-        if not cls.__instance:
-            cls.__instance = super().__new__(cls)
-        return cls.__instance
-
     def __init__(self, **kwargs):
         """
         :param access_key:
@@ -32,7 +25,7 @@ class SevenCattle:
         """
         token = self._q.upload_token(self.bucket_name, save_file_name)
         r, s = put_data(token, source_file_path, save_file_name)
-        print(r,s)
+        print(r, s)
 
 
 if __name__ == '__main__':
@@ -43,7 +36,7 @@ if __name__ == '__main__':
         'secret_key': os.getenv("secret_key"),  # 填你的secret_key
         'bucket_name': os.getenv("bucket"),  # 填你的存储空间名称
     }
-
+    print(config)
     seven_cattle = SevenCattle(**config)
     seven_cattle.upload('c.conf', 'surge')
 
