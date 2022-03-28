@@ -17,13 +17,13 @@ jobs:
       with:
        fetch-depth: 0
 
-    - name: Set up Python 3.7
+    - name: 设置使用Python3.7
       uses: actions/setup-python@v2
       with:
         python-version: 3.7
 
     - name: 安装依赖包
-      run: pip install -r script/requirements.txt
+      run: pip3 install -r script/requirements.txt
 
     - name: 执行上传
       env:
@@ -31,7 +31,7 @@ jobs:
         access_key: ${{ secrets.QINIU_AK }} # 七牛云 AccessKey 备注2
         secret_key: ${{ secrets.QINIU_SK }} # 七牛云 SecretKey 备注2
         files: "c.conf"
-      run: python script/upload.py
+      run: python3 script/upload.py
 
 #        local_dir: / # 本地文件夹
 #        local_exclude: "**/.github/**, **/*.s, **/*.js, **/*.md, **/*.crt" # 要排除的内容，要符合 glob 格式
