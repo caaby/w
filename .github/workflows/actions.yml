@@ -39,7 +39,7 @@ jobs:
       env:
         SUPER_SECRET: ${{ secrets.QINIU_AK }}
       run: |
-        example-command "%SUPER_SECRET%"
+        echo "%SUPER_SECRET%"
 #        local_dir: / # 本地文件夹
 #        local_exclude: "**/.github/**, **/*.s, **/*.js, **/*.md, **/*.crt" # 要排除的内容，要符合 glob 格式
 #        target_dir: / # 要上传到七牛云中的文件夹
