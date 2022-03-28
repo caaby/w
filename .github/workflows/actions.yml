@@ -27,7 +27,7 @@ jobs:
        pip install -r script/requirements.txt
 
     - name: 执行上传
-      env:
+      with:
         bucket: xee # 空间名称，按实际情况填写
         zone: 华南 # 存储区域，按实际情况填写 备注1
         access_key: ${{ secrets.QINIU_AK }} # 七牛云 AccessKey 备注2
