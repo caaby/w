@@ -30,3 +30,6 @@
 模块无法调整 MITM 的 CA 证书。
 模块的设置会覆盖主配置文件，因此无法通过 UI 进行调整。
 模块描述位于：https ://manual.nssurge.com/others/module.html
+
+
+![example workflow](https://github.com/caaby/w/actions/workflows/actions/badge.svg)
