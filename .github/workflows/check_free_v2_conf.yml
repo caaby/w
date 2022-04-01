@@ -1,10 +1,14 @@
 name: 检查 v2 free surge list
+
 on:
   push:
     branches:
-     - surge
+      - surge
   schedule:
-  	- cron: '55 19 * * *'
+    - cron:  '0 20 * * *'
+  repository_dispatch:
+    types: run-twoslash-repros
+
 jobs:
   start:
     runs-on: ubuntu-latest
