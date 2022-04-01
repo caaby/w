@@ -5,9 +5,8 @@ on:
     branches:
       - surge
   schedule:
-    - cron:  '0 20 * * *'
-  repository_dispatch:
-    types: run-twoslash-repros
+    # 定时任务在utc的23点执行，换算北京时间需要 + 8也就是凌晨7点
+    - cron:  '0 23 * * *'
 
 jobs:
   start:
