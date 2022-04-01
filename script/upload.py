@@ -13,8 +13,6 @@ def seven_cattle(**kwargs):
         token = q.upload_token(bucket=kwargs.get("bucket_name"), key=file_path, expires=60 * 5)
         put_file(up_token=token, key=file_path, file_path=file_path)
 
-    BucketManager(auth=q).fetch(url=kwargs.get("bucket_name"), bucket=kwargs.get("bucket_name"), key="list")
-
 
 if __name__ == '__main__':
 
