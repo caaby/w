@@ -9,9 +9,11 @@ def seven_cattle(**kwargs):
     q = Auth(kwargs.get("access_key"), kwargs.get("secret_key"))
     # 要上传文件的本地路径
     files = kwargs.get("files").split(",")
+    bucket = BucketManager(q)
     for file_path in files:
         token = q.upload_token(bucket=kwargs.get("bucket_name"), key=file_path, expires=60 * 5)
         put_file(up_token=token, key=file_path, file_path=file_path)
+        bucket.change_mime(kwargs.get("bucket_name"), file_path, 'text/plain; charset=utf-8')
 
 
 if __name__ == '__main__':
