@@ -13,7 +13,7 @@ def seven_cattle(**kwargs):
     print(info)
     assert ret['key'] == key
     # 将一个文件的元信息修改为jpg
-    ret, info = bucket.change_mime(kwargs.get("bucket_name"), key, 'text/plain charset=utf-8')
+    ret, info = bucket.change_mime(kwargs.get("bucket_name"), key, 'text/plain;charset=utf-8')
     print(info)
 
 if __name__ == '__main__':
