@@ -13,7 +13,9 @@ def seven_cattle(**kwargs):
     for file_path in files:
         token = q.upload_token(bucket=kwargs.get("bucket_name"), key=file_path, expires=60 * 5)
         put_file(up_token=token, key=file_path, file_path=file_path)
-        bucket.change_mime(kwargs.get("bucket_name"), file_path, 'text/plain; charset=utf-8')
+        # 将一个文件的元信息修改为jpg
+        ret, info = bucket.change_mime(kwargs.get("bucket_name"), file_path, 'text/plain charset=utf-8')
+        print(info)
 
 
 if __name__ == '__main__':
