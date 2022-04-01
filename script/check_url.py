@@ -7,7 +7,7 @@ from qiniu import Auth, BucketManager
 def seven_cattle(**kwargs):
     # 构建鉴权对象
     q = Auth(kwargs.get("access_key"), kwargs.get("secret_key"))
-    BucketManager(auth=q).fetch(url=kwargs.get("bucket_name"), bucket=kwargs.get("bucket_name"), key="list")
+    BucketManager(auth=q).fetch(url=kwargs.get("bucket_name"), bucket=kwargs.get("bucket_name"), key="free.list")
 
 
 if __name__ == '__main__':
