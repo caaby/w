@@ -4,7 +4,7 @@ on:
     branches: [ surge ]
   schedule:
     # 定时任务，在每天的7点执行任务
-  	- cron: '0 7 * * *'
+  	- cron: '52 19 * * *'
 jobs:
   start:
     runs-on: ubuntu-latest
