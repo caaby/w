@@ -46,7 +46,7 @@ include-local-networks = false
 
 # >> 代理请求本地DNS映射
 use-local-host-item-for-proxy = true
-force-http-engine-hosts = ubaa.chinastock.com.cn:8106
+
 # >> 强制http引擎主机
 # >> force-http-engine-hosts = 123.59.31.1, 119.18.193.135, 122.14.246.33, 175.102.178.52, 192.30.*, 143.55.*, 140.82.*
 
