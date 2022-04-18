@@ -1,33 +1,33 @@
-name: 上传七牛云
-on:
-  push:
-    branches:
-      - "surge"
-  pull_request:
-    branches: ["surge"]
-
-jobs:
-  actions:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: 检索文件
-      uses: actions/checkout@v2
-      with:
-       fetch-depth: 0
-
-    - name: 设置使用Python3.7
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.7
-
-    - name: 安装依赖包
-      run: pip3 install -r script/requirements.txt
-
-    - name: 执行上传
-      env:
-        bucket: xee
-        access_key: ${{ secrets.QINIU_AK }}
-        secret_key: ${{ secrets.QINIU_SK }}
-        files: "c.conf"
-      run: python3 script/upload.py
+#name: 上传七牛云
+#on:
+#  push:
+#    branches:
+#      - "surge"
+#  pull_request:
+#    branches: ["surge"]
+#
+#jobs:
+#  actions:
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#    - name: 检索文件
+#      uses: actions/checkout@v2
+#      with:
+#       fetch-depth: 0
+#
+#    - name: 设置使用Python3.7
+#      uses: actions/setup-python@v2
+#      with:
+#        python-version: 3.7
+#
+#    - name: 安装依赖包
+#      run: pip3 install -r script/requirements.txt
+#
+#    - name: 执行上传
+#      env:
+#        bucket: xee
+#        access_key: ${{ secrets.QINIU_AK }}
+#        secret_key: ${{ secrets.QINIU_SK }}
+#        files: "c.conf"
+#      run: python3 script/upload.py

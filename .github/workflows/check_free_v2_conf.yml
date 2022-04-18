@@ -1,34 +1,34 @@
-name: 检查 v2 free surge list
-
-on:
-  push:
-    branches:
-      - surge
-  schedule:
-    # 定时任务在utc的23点执行，换算北京时间需要 + 8也就是凌晨7点
-    - cron:  '0 23 * * *'
-
-jobs:
-  start:
-    runs-on: ubuntu-latest
-    steps:
-      - name: 检索文件
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-
-      - name: 设置使用Python3.7
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.7
-
-      - name: 安装依赖包
-        run: pip3 install -r script/requirements.txt
-
-      - name: 执行上传
-        env:
-          bucket: xee
-          access_key: ${{ secrets.QINIU_AK }}
-          secret_key: ${{ secrets.QINIU_SK }}
-          url: "https://cdn.v2free.net/link/ighvqVWAeHYIKsMK?list=surge"
-        run: python3 script/check_url.py
+#name: 检查 v2 free surge list
+#
+#on:
+#  push:
+#    branches:
+#      - surge
+#  schedule:
+#    # 定时任务在utc的23点执行，换算北京时间需要 + 8也就是凌晨7点
+#    - cron:  '0 23 * * *'
+#
+#jobs:
+#  start:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: 检索文件
+#        uses: actions/checkout@v2
+#        with:
+#          fetch-depth: 0
+#
+#      - name: 设置使用Python3.7
+#        uses: actions/setup-python@v2
+#        with:
+#          python-version: 3.7
+#
+#      - name: 安装依赖包
+#        run: pip3 install -r script/requirements.txt
+#
+#      - name: 执行上传
+#        env:
+#          bucket: xee
+#          access_key: ${{ secrets.QINIU_AK }}
+#          secret_key: ${{ secrets.QINIU_SK }}
+#          url: "https://cdn.v2free.net/link/ighvqVWAeHYIKsMK?list=surge"
+#        run: python3 script/check_url.py
