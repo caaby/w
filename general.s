@@ -31,7 +31,7 @@ hijack-dns = 8.8.8.8:53, 8.8.4.4:53
 # >> 公共Wi-Fi下的默认策略启用
 use-default-policy-if-wifi-not-primary = true
 
-# >> Always Real IP Hosts
+# >> Always Real IP Hosts 当 Surge VIF 处理 DNS 问题时，这个选项要求 Surge 返回一个真实的 IP 地址，而不是一个假的 IP 地址（Fake-IP）。
 always-real-ip = *.msftconnecttest.com, *.msftncsi.com, *.srv.nintendo.net, *.stun.playstation.net, xbox.*.microsoft.com, *.xboxlive.com, *.logon.battlenet.com.cn, *.logon.battle.net, stun.l.google.com
 
 # >> 跳过代理
