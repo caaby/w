@@ -11,4 +11,4 @@
 
 [Script]
 # >> 节假日倒计时 = type=generic, timeout=10, script-path=https://raw.githubusercontent.com/TributePaulWalker/Profiles/main/JavaScript/Surge/Timecard.js
-网络信息面板 = type=generic, timeout=20, update-interval=3600, script-path=https://raw.githubusercontent.com/caaby/w/surge/ip.js
+网络信息面板 = type=generic, timeout=20, script-path=https://raw.githubusercontent.com/caaby/w/surge/ip.js
