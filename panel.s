@@ -4,10 +4,10 @@
 [Panel]
 # >> Surge Pro标题,可显示启动时间,点击刷新为重载配置
 SurgePro = script-name=SurgePro,update-interval=1
-# >> 网络信息面板
-NET_info = script-name=NET_info,title="网络状态",content="请刷新",style=info,update-interval=3600
 # >> 节假日查询
 Timecard = script-name=Timecard,update-interval=3600
+# >> 网络信息面板
+NET_info = script-name=NET_info,title="网络状态",content="请刷新",style=info,update-interval=3600
 # >> 机场信息
 Sub_info = script-name=Sub_info,update-interval=43200
 # >> 策略组面板 可重复配置 注意修改相应字段
