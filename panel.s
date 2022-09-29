@@ -18,7 +18,7 @@ Timecard = script-name=Timecard,update-interval=3600
 [Script]
 Timecard = type=generic,timeout=10,script-path=https://raw.githubusercontent.com/smartmimi/conf/master/surge/timecard.js,argument=color=#4169E1
 net-info-panel=type=generic,timeout=10,script-path=https://raw.githubusercontent.com/Peng-YM/QuanX/master/Tools/Panels/NetInfo/net-info-panel.js,argument=color=#4169E1
-Sub_info = type=generic,timeout=10,script-path=https://raw.githubusercontent.com/mieqq/mieqq/master/sub_info_panel.js,script-update-interval=0,argument=url=https%3A%2F%2Fsubscribe.gacloudltd.store%2Flink%2FjeSFjhzquavecr1t&reset_day=19&title=GaCloud&icon=opticaldisc&color=#4169E1
+Sub_info = type=generic,timeout=10,script-path=https://raw.githubusercontent.com/mieqq/mieqq/master/sub_info_panel.js,script-update-interval=0,argument=url=https%3A%2F%2Fsub.gacloudltd.store%2Flink%2FjeSF5dlvlrM1A6sGTR0q&reset_day=19&title=GaCloud&icon=opticaldisc&color=#4169E1
 TrafficStatistics = type=generic,timeout=10,script-path= https://raw.githubusercontent.com/fishingworld/something/main/PanelScripts/trafficstatistics.js ,argument=icon=arrow.up.arrow.down.circle&color=#4169E1
 
 # SurgePro = type=generic,timeout=10,script-path= https://raw.githubusercontent.com/fishingworld/something/main/PanelScripts/surgepro_reloadprofile.js,argument=icon=crown.fill&color=#4169E1
