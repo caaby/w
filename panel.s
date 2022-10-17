@@ -6,8 +6,6 @@
 net-info-panel=title="网络状态",content="请刷新",style=info,script-name=net-info-panel
 # >> 流量统计 点击以切换网络界面
 TrafficStatistics = script-name=TrafficStatistics,update-interval=1
-# >> 机场信息
-Sub_info = script-name=Sub_info,update-interval=43200
 # >> Surge Pro标题,可显示启动时间,点击刷新为重载配置
 # SurgePro = script-name=SurgePro,update-interval=1
 # >> 节假日查询
@@ -18,7 +16,6 @@ Timecard = script-name=Timecard,update-interval=3600
 [Script]
 Timecard = type=generic,timeout=10,script-path=https://raw.githubusercontent.com/smartmimi/conf/master/surge/timecard.js,argument=color=#4169E1
 net-info-panel=type=generic,timeout=10,script-path=https://raw.githubusercontent.com/Peng-YM/QuanX/master/Tools/Panels/NetInfo/net-info-panel.js,argument=color=#4169E1
-Sub_info = type=generic,timeout=10,script-path=https://raw.githubusercontent.com/mieqq/mieqq/master/sub_info_panel.js,script-update-interval=0,argument=url=https%3A%2F%2Fsub.gacloudltd.store%2Flink%2F5dlvlrM1A6sGTR0q%3Ftype%3Dss%26target%3Dsurge&reset_day=19&title=GaCloud&icon=opticaldisc&color=#4169E1
 TrafficStatistics = type=generic,timeout=10,script-path= https://raw.githubusercontent.com/fishingworld/something/main/PanelScripts/trafficstatistics.js ,argument=icon=arrow.up.arrow.down.circle&color=#4169E1
 
 # SurgePro = type=generic,timeout=10,script-path= https://raw.githubusercontent.com/fishingworld/something/main/PanelScripts/surgepro_reloadprofile.js,argument=icon=crown.fill&color=#4169E1
