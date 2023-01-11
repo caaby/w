@@ -1,0 +1,17 @@
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+    
+jobs:
+  build:
+    runs-on: ubuntu-latest    
+  steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+
+    - name: 运行脚本
+      run: |
+        python3 lv_work.py 
