@@ -1,3 +1,4 @@
+name: 执行lv_work脚本
 on:
   schedule:
     - cron: '*/5 * * * *'
@@ -11,6 +12,6 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: "3.7"
-    - name: Install dependencies
+    - name: 执行脚本
       run: |
         python lv_work.py 
