@@ -3,15 +3,14 @@ on:
   schedule:
     - cron: '*/5 * * * *'
 jobs:
-  build:
+  work:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python3.7
-      uses: actions/setup-python@v3
+    - name: Set up Python3.10
+      uses: actions/setup-python@v4
       with:
-        python-version: "3.7"
+        python-version: '3.10'
+        
     - name: 执行脚本
-      run: |
-        python lv_work.py 
+      run: python3 lv_work.py 
