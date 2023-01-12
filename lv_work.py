@@ -24,7 +24,7 @@ def mail():
         context = ssl.create_default_context()
         with smtplib.SMTP("smtp.office365.com", 587) as server:
             server.starttls(context=context)
-            server.login(my_sender, "829475mx")
+            server.login(my_sender, "11111111")
             server.sendmail(my_sender, [email_addr, ], msg.as_string())
     except Exception as e:
         print(e)
