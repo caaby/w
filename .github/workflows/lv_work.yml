@@ -2,7 +2,7 @@ name: 执行lv_work脚本
 
 on:
   schedule:
-    - cron: '0 * * * *'
+    - cron: '36 * * * *'
 
 jobs:
   work:
