@@ -28,6 +28,9 @@ jobs:
         ls -l
         chmod 777 cloud.conf
         wget -O cloud.conf ${{secrets.FILE_URL}}
+        ls -l
+        cat cloud.conf
+        echo "conf"
       
     - name: 替换第一行更新的url
       if: ${{ success() }}
