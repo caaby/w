@@ -31,7 +31,8 @@ jobs:
     - name: 追加MINT文件
       if: ${{ success() }}
       run: |
-        cd ${GITHUB_WORKSPACE}
+        #cd ${GITHUB_WORKSPACE}
+        cat cloud.conf
         echo $'[MITM]
         skip-server-cert-verify = true
         ca-passphrase = MitM
