@@ -30,13 +30,12 @@ jobs:
       run: |
         ls -l
         chmod 777 cloud.conf
-        cat cloud.conf
-        sed -i '1s/.*/#!MANAGED-CONFIG https:\/\/raw.githubusercontent.com\/caaby\/w\/surge\/cloud.conf/' cloud.conf
-        cat cloud.conf
+        cat cloud.conf | head -n 10
         
     - name: 追加MINT文件
       if: ${{ success() }}
       run: |
+        sed -i '1s/.*/#!MANAGED-CONFIG https:\/\/raw.githubusercontent.com\/caaby\/w\/surge\/cloud.conf/' cloud.conf
         echo $'[MITM]
         skip-server-cert-verify = true
         ca-passphrase = MitM
