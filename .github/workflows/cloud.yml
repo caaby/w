@@ -28,7 +28,6 @@ jobs:
       run: |
         cd ${GITHUB_WORKSPACE}
         wget -qO cloud1.conf ${{secrets.FILE_URL}} || cat cloud1.conf
-        cat .cloud.conf
       
     - name: 替换第一行更新的url
       if: ${{ success() }}
