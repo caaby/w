@@ -23,7 +23,7 @@ jobs:
         
     - name: 获取远程cloud.conf 文件
       if: ${{ success() }}
-      run: wget -O cloud.conf ${{secrets.FILE_URL}}
+      run: wget -O cloud.conf '${{secrets.FILE_URL}}'
       
     - name: 替换第一行更新的url
       if: ${{ success() }}
