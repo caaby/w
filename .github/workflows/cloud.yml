@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [ "surge" ]
   schedule:
-    - cron:  '*/10 * * * *'
+    - cron:  '0 * * * *'
 
 # on:
 #   push:
@@ -23,20 +23,14 @@ jobs:
         
     - name: 获取远程cloud.conf 文件
       if: ${{ success() }}
-      run: wget -O cloud.conf '${{secrets.FILE_URL}}'
-      
-    - name: 替换第一行更新的url
-      if: ${{ success() }}
-      run: |
-        ls -l
-        chmod 777 cloud.conf
-        cat cloud.conf | head -n 10
+      run: wget -qO cloud.conf '${{secrets.FILE_URL}}'
         
     - name: 追加MINT文件
       if: ${{ success() }}
       run: |
         sed -i '1s/.*/#!MANAGED-CONFIG https:\/\/raw.githubusercontent.com\/caaby\/w\/surge\/cloud.conf/' cloud.conf
-        echo $'[MITM]
+        echo $'
+        [MITM]
         skip-server-cert-verify = true
         ca-passphrase = MitM
         # >> MitM 安装地址 https://raw.githubusercontent.com/caaby/w/surge/ca.crt
