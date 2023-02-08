@@ -30,6 +30,7 @@ jobs:
       run: |
         sed -i '1s/.*/#!MANAGED-CONFIG https:\/\/raw.githubusercontent.com\/caaby\/w\/surge\/cloud.conf/' cloud.conf
         echo $'
+        
         [MITM]
         skip-server-cert-verify = true
         ca-passphrase = MitM
