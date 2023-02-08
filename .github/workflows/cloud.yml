@@ -24,7 +24,7 @@ jobs:
         fetch-depth: 1
     - name: 获取远程cloud.conf 文件
       if: ${{ success() }}
-      run: wget -qO cloud.conf ${{secrets.FILE_URL}}
+      run: wget -O cloud.conf ${{secrets.FILE_URL}}
     - name: 替换第一行更新的url
       if: ${{ success() }}
       run: sed -i '1s/.*/#!MANAGED-CONFIG https:\/\/raw.githubusercontent.com\/caaby\/w\/surge\/cloud.conf/' cloud.conf
