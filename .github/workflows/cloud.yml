@@ -25,6 +25,7 @@ jobs:
       if: ${{ success() }}
       run: |
         cd ${GITHUB_WORKSPACE}
+        ls -l
         chmod 777 cloud.conf
         wget -O cloud.conf ${{secrets.FILE_URL}}
       
