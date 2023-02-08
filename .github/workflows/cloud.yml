@@ -24,7 +24,7 @@ jobs:
     - name: 获取远程cloud.conf 文件
       if: ${{ success() }}
       run: |
-        cd ${GITHUB_WORKSPACE}
+        # cd ${GITHUB_WORKSPACE}
         ls -l
         chmod 777 cloud.conf
         wget -O cloud.conf ${{secrets.FILE_URL}}
@@ -35,6 +35,7 @@ jobs:
     - name: 替换第一行更新的url
       if: ${{ success() }}
       run: |
+        ls -l
         sed -i '1s/.*/#!MANAGED-CONFIG https:\/\/raw.githubusercontent.com\/caaby\/w\/surge\/cloud.conf/' cloud.conf
         cat cloud.conf
         
