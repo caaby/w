@@ -2,9 +2,17 @@ name: 更新文件
 
 on:
   push:
-  workflow_dispatch:
+    branches: [ "surge" ]
+  pull_request:
+    branches: [ "surge" ]
   schedule:
     - cron:  '*/10 * * * *'
+
+# on:
+#   push:
+#   workflow_dispatch:
+#   schedule:
+#     - cron:  '*/10 * * * *'
 
 jobs:
   update-readme-with-latest-posts:
