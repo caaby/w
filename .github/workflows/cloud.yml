@@ -28,8 +28,8 @@ jobs:
     - name: 追加MINT文件
       if: ${{ success() }}
       run: |
-        sed -i '13s/.*/ /' cloud.conf
-        sed -i '17s/.*/ /' cloud.conf
+        sed -i '13s/.*/\n/' cloud.conf
+        sed -i '17s/.*/\n/' cloud.conf
         sed -i '23s/.*/proxy-test-url = http:\/\/google.com\/generate_204/' cloud.conf
         sed -i '1s/.*/#!MANAGED-CONFIG https:\/\/raw.githubusercontent.com\/caaby\/w\/surge\/cloud.conf/' cloud.conf
         echo $'
