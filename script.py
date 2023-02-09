@@ -19,7 +19,7 @@ object_name = 'cloud.conf'
 # content = '{"age": 1}'
 # 设置HTTP header，例如HTTP header的名称为Content-Type，值为'application/json; charset=utf-8'。
 # bucket.put_object(object_name, content, headers={'Content-Type': 'application/json; charset=utf-8'})
-bucket.put_object_from_file(key='cloud1.conf',
+bucket.put_object_from_file(key=object_name,
                             filename=object_name,
                             headers={
                                 'Content-Type': 'application/octet-stream; charset=utf-8',
