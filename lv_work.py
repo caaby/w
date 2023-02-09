@@ -9,13 +9,13 @@ my_sender = 'fangling@outlook.com'
 email_addr = '2449891969@qq.com'
 
 
-
 def mail():
     ret = True
     import traceback
     try:
         msg = MIMEText(
-            "你要购买的CARRYALL 小号手袋有货了\n 购买地址: https://www.louisvuitton.cn/zhs-cn/products/carryall-pm-monogram-nvprod3770016v/M46203",
+            "你要购买的CARRYALL 小号手袋有货了\n 购买地址: https://www.louisvuitton.cn/zhs-cn/products/carryall-pm-monogram"
+            "-nvprod3770016v/M46203",
             "plain", 'utf-8')
         msg["From"] = formataddr(("LV通知", my_sender))
         msg["To"] = formataddr(("蕾蕾姐", email_addr))
@@ -51,7 +51,8 @@ def do_it():
         'sec-fetch-dest': 'empty',
         'sec-fetch-mode': 'cors',
         'sec-fetch-site': 'same-site',
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36'
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                      'Chrome/108.0.0.0 Safari/537.36 '
     }
 
     response = requests.request("GET", url, headers=headers, data=payload)
@@ -68,5 +69,4 @@ def do_it():
 if __name__ == '__main__':
     for i in range(12):
         do_it()
-        time.sleep(60*5)
-        
+        time.sleep(60 * 5)
