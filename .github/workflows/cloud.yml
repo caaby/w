@@ -5,7 +5,7 @@ on:
     branches:
       - surge
   schedule:
-    - cron:  '* */6 * * *'
+    - cron:  '0 * * * *'
 
 jobs:
   update-cloud-conf:
