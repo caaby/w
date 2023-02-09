@@ -16,7 +16,7 @@ jobs:
         
     - name: Auto commit
       run: |
-          date >> log.txt
+          echo $(TZ=UTC-8 date +%Y-%m-%d" "%H:%M:%S) >> log.txt
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Actio"
           git remote set-url origin https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
