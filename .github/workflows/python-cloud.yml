@@ -23,7 +23,7 @@ jobs:
 
     - name: replace file
       run: |
-        sed -i '1s/.*/#!MANAGED-CONFIG {{ secrets.MANAGED_CONFIG_URL }}/' cloud.conf
+        sed -i '1s/.*/#!MANAGED-CONFIG ${{ secrets.MANAGED_CONFIG_URL }}/' cloud.conf
         sed -i 's/SURGE_URL/${{ secrets.SURGE_URL }}/' cloud.conf
 
     - name: run with python script
