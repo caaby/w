@@ -8,7 +8,7 @@ on:
     - cron:  '15 */7 * * *'
 
 jobs:
-  update-cloud-conf:
+  append-logs:
     runs-on: ubuntu-latest
     steps:
     - name: Clone repository
