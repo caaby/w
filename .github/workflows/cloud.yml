@@ -2,8 +2,7 @@ name: 更新文件
 
 on:
   push:
-    branches:
-      - surge
+    branches: ["main","surge"]
   schedule:
     - cron:  '15 */7 * * *'
 
@@ -16,9 +15,11 @@ jobs:
         
     - name: Auto commit
       run: |
-          echo $(TZ=UTC-8 date +%Y-%m-%d" "%H:%M:%S) >> log.txt
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Actio"
+          git checkout surge
+          
+          echo $(TZ=UTC-8 date +%Y-%m-%d" "%H:%M:%S) >> log.txt
           git remote set-url origin https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
           # git pull --rebase
           git commit --allow-empty -am "change coloud confing"
