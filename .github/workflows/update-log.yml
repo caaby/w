@@ -2,8 +2,9 @@ name: 更新文件
 
 on:
   push:
-    branches:
-      - surge
+    branches: [ "main", "surge" ]
+  pull_request:
+    branches: [ "main", "surge" ]
   schedule:
     - cron:  '15 */7 * * *'
 
