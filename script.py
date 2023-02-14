@@ -21,9 +21,6 @@ object_name = 'cloud.conf'
 # bucket.put_object(object_name, content, headers={'Content-Type': 'application/json; charset=utf-8'})
 bucket.put_object_from_file(key=object_name,
                             filename=object_name,
-                            headers={
-                                'Content-Type': 'application/octet-stream; charset=utf-8',
-                                'Content-Disposition': 'attachment; filename=cloud.conf'
-                            }
+                            headers={'Content-Type': 'text/plain; charset=utf-8'}
                             )
 
