@@ -6,7 +6,7 @@ on:
     - cron:  '13 */9 * * *'
 
 jobs:
-  chechin-glados:
+  checkin-glados:
     runs-on: ubuntu-latest
     steps:
     - name: Clone repository
