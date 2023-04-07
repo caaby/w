@@ -19,8 +19,8 @@ jobs:
 
     - name: replace file
       run: |
-        sed -i '1s#.*#\#!MANAGED-CONFIG ${{ secrets.MANAGED_CONF_DOS_URL }}.servers.conf#' template.conf
-        sed -i 's#VAR_SERVERS_CONF_URL#${{ secrets.SERVERS_CONF_URL }}#g' template.conf
+        sed -i '1s#.*#\#!MANAGED-CONFIG ${{ secrets.MANAGED_CONF_DOS_URL }}#' template.conf
+        sed -i 's#VAR_SERVERS_CONF_URL#${{ secrets.SERVERS_CONF_URL }}.servers.conf#g' template.conf
         sed -i 's#VAR_AUTO_CONF_URL#${{ secrets.SERVERS_CONF_URL }}.auto.conf#g' template.conf
         sed -i 's#VAR_NETFLIX_CONF_URL#${{ secrets.SERVERS_CONF_URL }}.netflix.conf#g' template.conf
         sed -i 's#VAR_PRIVATE_KEY#${{ secrets.PRIVATE_KEY }}#g' template.conf
