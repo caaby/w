@@ -28,4 +28,5 @@ jobs:
         ACCESS_KEY_SECRET: ${{ secrets.ACCESS_KEY_SECRET }}
         ENDPOINT: ${{ secrets.ENDPOINT }}
         BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
-      run: python script.py cloud.conf
+        FILE_NAME: cloud.conf
+      run: python script.py 
