@@ -16,7 +16,7 @@ jobs:
     - run: |
         python -m pip install --upgrade pip && pip install oss2
 
-    - name: replace file
+    - name: replace files
       run: |
         sed -i '1s/.*/#!MANAGED-CONFIG ${{ vars.MANAGED_CONFIG_URL }}/' template.conf
         sed -i 's/VAR_SERVERS_CONF_URL/${{ vars.SERVERS_CONF_URL }}/g' template.conf
