@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+import sys
 import oss2
 
 yourAccessKeyId = os.environ.get('ACCESS_KEY_ID')
@@ -14,7 +15,7 @@ auth = oss2.Auth(yourAccessKeyId, yourAccessKeySecret)
 # 填写Bucket名称，例如examplebucket。
 bucket = oss2.Bucket(auth, yourEndpoint, bucket_name)
 # 填写Object完整路径，例如exampledir/exampleobject.txt。Object完整路径中不能包含Bucket名称。
-object_name = 'cloud.conf'
+object_name = sys.argv[1]
 # 填写待上传的字符串。
 # content = '{"age": 1}'
 # 设置HTTP header，例如HTTP header的名称为Content-Type，值为'application/json; charset=utf-8'。
