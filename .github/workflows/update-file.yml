@@ -23,7 +23,6 @@ jobs:
         sed -i 's/VAR_AUTO_CONF_URL/${{ vars.AUTO_CONF_URL }}/g' template.conf
         sed -i 's/VAR_PRIVATE_KEY/${{ vars.PRIVATE_KEY }}/g' template.conf
         sed -i 's/VAR_PUBLIC_KEY/${{ vars.PUBLIC_KEY }}/g' template.conf
-        sed -i 's/VAR_CA_P12/${{ vars.CA_P12 }}/g' template.conf
         mv template.conf ${{ vars.REAL_CONFIG_NAME }}
 
     - name: run with python script
