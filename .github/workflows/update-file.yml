@@ -23,7 +23,6 @@ jobs:
         sed -i 's#VAR_SERVERS_CONF_URL#${{ secrets.SERVERS_CONF_URL }}.servers.conf#g' template.conf
         sed -i 's#VAR_AUTO_CONF_URL#${{ secrets.SERVERS_CONF_URL }}.auto.conf#g' template.conf
         sed -i 's#VAR_NETFLIX_CONF_URL#${{ secrets.SERVERS_CONF_URL }}.netflix.conf#g' template.conf
-        sed -i 's#VAR_ALL_CONF_URL#${{ secrets.ALL_CONF_URL }}#g' template.conf
         sed -i 's#VAR_PRIVATE_KEY#${{ secrets.PRIVATE_KEY }}#g' template.conf
         sed -i 's#VAR_PUBLIC_KEY#${{ secrets.PUBLIC_KEY }}#g' template.conf
         sed -i 's#VAR_CA_P12#${{ secrets.CA_P12 }}#g' template.conf
