@@ -1,6 +1,0 @@
-#!name=Apple proxy to us
-#!desc=apple服务使用美国代理
-#!openUrl=
-
-[Rule]
-RULE-SET,https://raw.githubusercontent.com/DivineEngine/Profiles/master/Surge/Ruleset/Extra/Apple/Apple.list,US
