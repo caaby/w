@@ -16,10 +16,10 @@ jobs:
         
     - name: Auto commit
       run: |
-          echo $(TZ=UTC-8 date +%Y-%m-%d" "%H:%M:%S) >> log.txt
           git config --local user.email "fangling@outlook.com"
           git config --local user.name "caaby"
           git remote set-url origin https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
           git pull --rebase
+          echo $(TZ=UTC-8 date +%Y-%m-%d" "%H:%M:%S) >> log.txt
           git commit --allow-empty -am "change coloud config"
           git push
