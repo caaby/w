@@ -13,8 +13,10 @@ jobs:
           main
     - name: Get last commit date
       run: |
+        git pull
         for file in $(find $PWD -type f); do
           echo "$file"
+          git pull
           git log $file
           last_commit=$(git log -1 --pretty=format:%cd --date=iso "$file")
           echo "$file last commit date: $last_commit"
