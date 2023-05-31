@@ -10,7 +10,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         ref:
-          nil
+          main
     - name: Get last commit date
       run: |
         for file in $(find $PWD -type f); do
