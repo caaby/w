@@ -14,7 +14,7 @@ jobs:
     - name: Get last commit date
       run: |
         for file in $(find $PWD -type f); do
-          git show "$file"
+          git log "$file"
           last_commit=$(git log -1 --pretty=format:%cd --date=iso "$file")
           echo "$file last commit date: $last_commit"
         done
