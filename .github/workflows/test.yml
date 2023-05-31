@@ -1,0 +1,19 @@
+name: Get last commit date
+
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        ref:
+          nil
+    - name: Get last commit date
+      run: |
+        for file in $(find $PWD -type f); do
+          last_commit=$(git log -1 --pretty=format:%cd --date=iso "$file")
+          echo "$file last commit date: $last_commit"
+        done
