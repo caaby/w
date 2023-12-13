@@ -33,6 +33,7 @@ while :
             yum clean all
             yum makecache
             _info
+            break
             ;;
         [2]*)
         #腾讯云CentOS7安装源
@@ -41,6 +42,7 @@ while :
             yum clean all
             yum makecache
             _info
+            break
             ;;
 
         [3]*)
@@ -60,6 +62,7 @@ deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-security main restricted
 # deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-security main restricted universe multiverse
 EOF
             apt-get update -y 
+            break
             ;;
              
 
@@ -79,6 +82,7 @@ deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-security main restricted 
 # deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-security main restricted universe multiverse
 EOF
             apt-get update -y
+            break
             ;;  
               
         [5]*)
@@ -97,6 +101,7 @@ deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ hirsute-security main restricte
 # deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ hirsute-security main restricted universe multiverse
 EOF
             apt-get update -y 
+            break
             ;;  
                                                                 
         
@@ -118,6 +123,7 @@ deb https://mirrors.tuna.tsinghua.edu.cn/debian-security bullseye-security main 
 # deb-src https://mirrors.tuna.tsinghua.edu.cn/debian-security bullseye-security main contrib non-free
 EOF
             apt-get update -y 
+            break
             ;;  
         [7]*)
             break
