@@ -29,7 +29,7 @@ while :
         [1]*)
         #阿里云CentOS7安装源
             backup_source
-            wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+            curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
             yum clean all
             yum makecache
             _info
@@ -37,7 +37,7 @@ while :
         [2]*)
         #腾讯云CentOS7安装源
             backup_source
-            wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.cloud.tencent.com/repo/centos7_base.repo
+            curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.cloud.tencent.com/repo/centos7_base.repo
             yum clean all
             yum makecache
             _info
