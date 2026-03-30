@@ -15,6 +15,6 @@ jobs:
       - name: Start tmate debug
         uses: mxschmitt/action-tmate@v3
         with:
-          limit-access-to-actor: true
+          # limit-access-to-actor: true
           detached: true
           connect-timeout-seconds: 3600
