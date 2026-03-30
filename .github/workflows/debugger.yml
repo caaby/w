@@ -12,11 +12,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install tmate
-        run: |
-          apk update
-          apk add bash tmate curl
-
       - name: Start tmate debug
         uses: mxschmitt/action-tmate@v3
         with:
