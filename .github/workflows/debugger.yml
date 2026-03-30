@@ -1,0 +1,25 @@
+name: debugger-action
+on:
+  workflow_dispatch  # 👈 这个就是：手动点击运行
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: alpine:latest  # 👈 纯 Alpine 环境
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install tmate
+        run: |
+          apk update
+          apk add bash tmate curl
+
+      - name: Start tmate debug
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
+          detached: true
+          connect-timeout-seconds: 3600
