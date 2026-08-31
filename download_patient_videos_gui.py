@@ -10,7 +10,7 @@ import re
 import tempfile
 import threading
 import tkinter as tk
-from tkinter import filedialog, messagebox, ttk
+from tkinter import filedialog, ttk
 from urllib.parse import urljoin
 
 import requests
@@ -445,15 +445,15 @@ class DownloadPatientVideosApp:
     def __init__(self, root):
         self.root = root
         self.root.title('患者视频下载工具')
-        self.root.geometry('760x560')
+        self.root.geometry('1000x650')
         self.events = queue.Queue()
         self.worker = None
 
         self.input_path = tk.StringVar()
         self.output_dir = tk.StringVar(value=os.path.abspath('videos'))
-        self.server = tk.StringVar(value='https://')
-        self.username = tk.StringVar()
-        self.password = tk.StringVar()
+        self.server = tk.StringVar(value='https://10.100.22.10')
+        self.username = tk.StringVar(value='admin')
+        self.password = tk.StringVar(value='admin')
         self.overwrite = tk.BooleanVar(value=False)
         self.progress_text = tk.StringVar(value='请选择 Excel 文件并填写服务器信息')
 
@@ -464,7 +464,7 @@ class DownloadPatientVideosApp:
         frame = ttk.Frame(self.root, padding=12)
         frame.pack(fill=tk.BOTH, expand=True)
         frame.columnconfigure(1, weight=1)
-        frame.rowconfigure(9, weight=1)
+        frame.rowconfigure(8, weight=1)
 
         ttk.Label(frame, text='Excel 文件').grid(row=0, column=0, sticky=tk.W, pady=4)
         ttk.Entry(frame, textvariable=self.input_path).grid(row=0, column=1, sticky=tk.EW, pady=4)
@@ -475,27 +475,34 @@ class DownloadPatientVideosApp:
         ttk.Button(frame, text='选择...', command=self._browse_output_dir).grid(row=1, column=2, padx=(6, 0), pady=4)
 
         ttk.Label(frame, text='服务器 IP/地址').grid(row=2, column=0, sticky=tk.W, pady=4)
-        ttk.Entry(frame, textvariable=self.server).grid(row=2, column=1, columnspan=2, sticky=tk.EW, pady=4)
-
-        ttk.Label(frame, text='登录用户名').grid(row=3, column=0, sticky=tk.W, pady=4)
-        ttk.Entry(frame, textvariable=self.username).grid(row=3, column=1, columnspan=2, sticky=tk.EW, pady=4)
-
-        ttk.Label(frame, text='登录密码').grid(row=4, column=0, sticky=tk.W, pady=4)
-        ttk.Entry(frame, textvariable=self.password, show='*').grid(row=4, column=1, columnspan=2, sticky=tk.EW, pady=4)
+        server_frame = ttk.Frame(frame)
+        server_frame.grid(row=2, column=1, columnspan=2, sticky=tk.EW, pady=4)
+        server_frame.columnconfigure(1, weight=1)
+        server_frame.columnconfigure(3, weight=1)
+        server_frame.columnconfigure(5, weight=1)
+        ttk.Entry(server_frame, textvariable=self.server).grid(row=0, column=1, sticky=tk.EW)
+        ttk.Label(server_frame, text=' 登录用户名 ').grid(row=0, column=2)
+        ttk.Entry(server_frame, textvariable=self.username).grid(row=0, column=3, sticky=tk.EW)
+        ttk.Label(server_frame, text=' 登录密码 ').grid(row=0, column=4)
+        ttk.Entry(server_frame, textvariable=self.password).grid(row=0, column=5, sticky=tk.EW)
 
         options = ttk.Frame(frame)
-        options.grid(row=5, column=1, columnspan=2, sticky=tk.W, pady=4)
+        options.grid(row=3, column=1, columnspan=2, sticky=tk.W, pady=4)
         ttk.Checkbutton(options, text='覆盖已存在视频', variable=self.overwrite).pack(side=tk.LEFT)
 
         self.start_button = ttk.Button(frame, text='预检并开始下载', command=self._start_download)
-        self.start_button.grid(row=6, column=0, columnspan=3, sticky=tk.EW, pady=(12, 6))
+        self.start_button.grid(row=4, column=0, columnspan=3, sticky=tk.EW, pady=(12, 6))
 
         self.progress_bar = ttk.Progressbar(frame, mode='determinate')
-        self.progress_bar.grid(row=7, column=0, columnspan=3, sticky=tk.EW)
-        ttk.Label(frame, textvariable=self.progress_text).grid(row=8, column=0, columnspan=3, sticky=tk.NW, pady=(6, 0))
+        self.progress_bar.grid(row=5, column=0, columnspan=3, sticky=tk.EW)
+        ttk.Label(frame, textvariable=self.progress_text).grid(row=6, column=0, columnspan=3, sticky=tk.NW, pady=(6, 0))
+
+        self.error_text = tk.StringVar()
+        self.error_label = ttk.Label(frame, textvariable=self.error_text, foreground='red', wraplength=900)
+        self.error_label.grid(row=7, column=0, columnspan=3, sticky=tk.EW, pady=(6, 0))
 
         log_frame = ttk.Frame(frame)
-        log_frame.grid(row=9, column=0, columnspan=3, sticky=tk.NSEW, pady=(28, 0))
+        log_frame.grid(row=8, column=0, columnspan=3, sticky=tk.NSEW, pady=(12, 0))
         log_frame.columnconfigure(0, weight=1)
         log_frame.rowconfigure(0, weight=1)
 
@@ -555,6 +562,7 @@ class DownloadPatientVideosApp:
             return
 
         self._clear_log()
+        self.error_text.set('')
         self.progress_bar['value'] = 0
         self.progress_text.set('正在预检...')
 
@@ -562,7 +570,7 @@ class DownloadPatientVideosApp:
             input_path, output_dir, server, client = self._validate_inputs()
         except Exception as ex:
             self.progress_text.set('预检失败')
-            messagebox.showerror('预检失败', str(ex))
+            self._show_error('预检失败: {}'.format(ex))
             return
 
         self.progress_text.set('开始下载...')
@@ -630,16 +638,19 @@ class DownloadPatientVideosApp:
 
     def _finish(self, summary):
         self.start_button.configure(state=tk.NORMAL)
+        self.error_text.set('')
         self.progress_text.set('下载完成')
         text = json.dumps(summary, sort_keys=True, ensure_ascii=False)
         self._append_log('INFO', 'Summary: {}'.format(text))
-        messagebox.showinfo('下载完成', '统计结果:\n{}'.format(text))
+
+    def _show_error(self, message):
+        self.error_text.set(message)
+        self._append_log('ERROR', message)
 
     def _fail(self, message):
         self.start_button.configure(state=tk.NORMAL)
         self.progress_text.set('下载失败')
-        self._append_log('ERROR', message)
-        messagebox.showerror('下载失败', message)
+        self._show_error(message)
 
 
 def main():
