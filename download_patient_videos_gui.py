@@ -231,6 +231,9 @@ def validate_targets(targets):
         row_number = target.get('_row_number') or index
         patient_given_names = (target.get('patient_given_names') or '').strip()
         patient_name = (target.get('patient_name') or '').strip()
+        if not (target.get('no') or '').strip():
+            errors.append('第 {} 行缺少 no'.format(row_number))
+            continue
         try:
             well_no = parse_well_no(target.get('no'))
         except (TypeError, ValueError):
@@ -238,9 +241,7 @@ def validate_targets(targets):
             continue
         if not patient_given_names and not patient_name:
             errors.append('第 {} 行 女方姓名 和 男方姓名 至少要填写一个'.format(row_number))
-        if not well_no:
-            errors.append('第 {} 行缺少 no'.format(row_number))
-        elif not 1 <= well_no <= 16:
+        if not 1 <= well_no <= 16:
             errors.append('第 {} 行 no 不合法: {}'.format(row_number, display_value(target.get('no'))))
 
     if errors:
@@ -294,9 +295,9 @@ def find_matching_dishrecords(dishrecords, patient_given_names, patient_name):
         if patient_given_names and patient_name:
             matched = dish_given_names == patient_given_names and dish_patient_name == patient_name
         elif patient_given_names:
-            matched = patient_given_names in dish_given_names
+            matched = dish_given_names == patient_given_names
         else:
-            matched = patient_name in dish_patient_name
+            matched = dish_patient_name == patient_name
         if matched:
             matches.append(dish)
     return matches
@@ -366,7 +367,21 @@ def download_patient_videos(client, input_path, output_dir, overwrite=False,
 
         if session_uuid:
             direct_sessions = client.get_sessionrecord(session_uuid)
-            age_at_start = direct_sessions[0].get('age_at_start') if direct_sessions else None
+            if len(direct_sessions) > 1:
+                summary['failed'] += 1
+                progress('error', 'Excel 第 {} 行：session_uuid 查询到重复的数据，为避免配对错误已跳过该患者: session_uuid={}, session 数量={}'.format(
+                    row_number, session_uuid, len(direct_sessions)))
+                if row_callback:
+                    row_callback(index, total)
+                continue
+            if not direct_sessions:
+                summary['no_session'] += 1
+                progress('warning', 'Excel 第 {} 行：当前服务器未找到 session_uuid 对应的数据，已跳过，可能不是这个 IP 的数据: session_uuid={}'.format(
+                    row_number, session_uuid))
+                if row_callback:
+                    row_callback(index, total)
+                continue
+            age_at_start = direct_sessions[0].get('age_at_start')
             for zid in VIDEO_ZIDS:
                 download_one_video(client, patient_given_names, patient_name, session_uuid, well_no, zid,
                                    output_dir, overwrite, summary, progress, age_at_start=age_at_start)
@@ -403,6 +418,8 @@ def download_patient_videos(client, input_path, output_dir, overwrite=False,
                 summary['failed'] += 1
                 progress('error', 'Excel 第 {} 行：查询到重复的数据，为避免配对错误已跳过该患者。可以在 Excel 添加一列 session_uuid，用来匹配正确的数据: {} {} dish_uuid={}, session 数量={}'.format(
                     row_number, patient_given_names, patient_name, dish_uuid, len(sessions)))
+                if row_callback:
+                    row_callback(index, total)
                 continue
 
             for session in sessions:
