@@ -14,10 +14,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Python 32-bit
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
           architecture: 'x86'
@@ -51,7 +51,7 @@ jobs:
             download_patient_videos_gui.py
 
       - name: Upload exe artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: DownloadPatientVideos-x86
           path: ./dist_nuitka/DownloadPatientVideos_x86.exe
