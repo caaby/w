@@ -464,19 +464,28 @@ class DownloadPatientVideosApp:
         frame = ttk.Frame(self.root, padding=12)
         frame.pack(fill=tk.BOTH, expand=True)
         frame.columnconfigure(1, weight=1)
-        frame.rowconfigure(8, weight=1)
+        frame.rowconfigure(9, weight=1)
 
-        ttk.Label(frame, text='Excel 文件').grid(row=0, column=0, sticky=tk.W, pady=4)
-        ttk.Entry(frame, textvariable=self.input_path).grid(row=0, column=1, sticky=tk.EW, pady=4)
-        ttk.Button(frame, text='选择...', command=self._browse_input).grid(row=0, column=2, padx=(6, 0), pady=4)
+        help_text = (
+            '使用说明：Excel 必须包含表头【女方姓名】【男方姓名】【no】，【session_uuid】为可选表头。'
+            '女方姓名、男方姓名请与 GCA 页面上的名字、姓氏保持一致；GCA 页面上存在的姓名，Excel 中也需要填写。'
+            'no 必填，表示位孔编号。'
+            '如果程序提示查询到重复数据，会自动跳过该行并标红提示；请在 Excel 中补充 session_uuid 后重新下载，以避免匹配到错误患者。'
+        )
+        ttk.Label(frame, text=help_text, foreground='#004080', wraplength=940, justify=tk.LEFT).grid(
+            row=0, column=0, columnspan=3, sticky=tk.EW, pady=(0, 10))
 
-        ttk.Label(frame, text='保存目录').grid(row=1, column=0, sticky=tk.W, pady=4)
-        ttk.Entry(frame, textvariable=self.output_dir).grid(row=1, column=1, sticky=tk.EW, pady=4)
-        ttk.Button(frame, text='选择...', command=self._browse_output_dir).grid(row=1, column=2, padx=(6, 0), pady=4)
+        ttk.Label(frame, text='Excel 文件').grid(row=1, column=0, sticky=tk.W, pady=4)
+        ttk.Entry(frame, textvariable=self.input_path).grid(row=1, column=1, sticky=tk.EW, pady=4)
+        ttk.Button(frame, text='选择...', command=self._browse_input).grid(row=1, column=2, padx=(6, 0), pady=4)
 
-        ttk.Label(frame, text='服务器 IP/地址').grid(row=2, column=0, sticky=tk.W, pady=4)
+        ttk.Label(frame, text='保存目录').grid(row=2, column=0, sticky=tk.W, pady=4)
+        ttk.Entry(frame, textvariable=self.output_dir).grid(row=2, column=1, sticky=tk.EW, pady=4)
+        ttk.Button(frame, text='选择...', command=self._browse_output_dir).grid(row=2, column=2, padx=(6, 0), pady=4)
+
+        ttk.Label(frame, text='服务器 IP/地址').grid(row=3, column=0, sticky=tk.W, pady=4)
         server_frame = ttk.Frame(frame)
-        server_frame.grid(row=2, column=1, columnspan=2, sticky=tk.EW, pady=4)
+        server_frame.grid(row=3, column=1, columnspan=2, sticky=tk.EW, pady=4)
         server_frame.columnconfigure(1, weight=1)
         server_frame.columnconfigure(3, weight=1)
         server_frame.columnconfigure(5, weight=1)
@@ -487,22 +496,22 @@ class DownloadPatientVideosApp:
         ttk.Entry(server_frame, textvariable=self.password).grid(row=0, column=5, sticky=tk.EW)
 
         options = ttk.Frame(frame)
-        options.grid(row=3, column=1, columnspan=2, sticky=tk.W, pady=4)
+        options.grid(row=4, column=1, columnspan=2, sticky=tk.W, pady=4)
         ttk.Checkbutton(options, text='覆盖已存在视频', variable=self.overwrite).pack(side=tk.LEFT)
 
         self.start_button = ttk.Button(frame, text='预检并开始下载', command=self._start_download)
-        self.start_button.grid(row=4, column=0, columnspan=3, sticky=tk.EW, pady=(12, 6))
+        self.start_button.grid(row=5, column=0, columnspan=3, sticky=tk.EW, pady=(12, 6))
 
         self.progress_bar = ttk.Progressbar(frame, mode='determinate')
-        self.progress_bar.grid(row=5, column=0, columnspan=3, sticky=tk.EW)
-        ttk.Label(frame, textvariable=self.progress_text).grid(row=6, column=0, columnspan=3, sticky=tk.NW, pady=(6, 0))
+        self.progress_bar.grid(row=6, column=0, columnspan=3, sticky=tk.EW)
+        ttk.Label(frame, textvariable=self.progress_text).grid(row=7, column=0, columnspan=3, sticky=tk.NW, pady=(6, 0))
 
         self.error_text = tk.StringVar()
         self.error_label = ttk.Label(frame, textvariable=self.error_text, foreground='red', wraplength=900)
-        self.error_label.grid(row=7, column=0, columnspan=3, sticky=tk.EW, pady=(6, 0))
+        self.error_label.grid(row=8, column=0, columnspan=3, sticky=tk.EW, pady=(6, 0))
 
         log_frame = ttk.Frame(frame)
-        log_frame.grid(row=8, column=0, columnspan=3, sticky=tk.NSEW, pady=(12, 0))
+        log_frame.grid(row=9, column=0, columnspan=3, sticky=tk.NSEW, pady=(12, 0))
         log_frame.columnconfigure(0, weight=1)
         log_frame.rowconfigure(0, weight=1)
 
