@@ -19,7 +19,7 @@ from requests.exceptions import RequestException
 
 TOKEN_PATH = '/geri_connect/auth/v1/token'
 PUBLIC_API_PREFIX = '/geri_connect/public/api/v1'
-VIDEO_PATH = '/files/video.json/{session_uuid}/well{well_no}_zid{zid}.mp4'
+VIDEO_PATH = '/files/video/{session_uuid}/well{well_no:02d}_zid{zid}.mp4'
 VIDEO_ZIDS = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '99']
 DEFAULT_REQUEST_TIMEOUT = 30
 DEFAULT_DOWNLOAD_TIMEOUT = 300
@@ -109,7 +109,7 @@ def make_patient_key(patient_given_names, patient_name):
 
 
 def safe_filename(value):
-    value = (value or '').strip()
+    value = '' if value is None else str(value).strip()
     value = re.sub(r'[<>:"/\\|?*\r\n\t]+', '_', value)
     return value.strip(' ._') or 'unknown'
 
@@ -204,15 +204,15 @@ def read_excel_targets(excel_path):
 
 
 def display_value(value):
-    value = (value or '').strip()
+    value = '' if value is None else str(value).strip()
     return value or '<empty>'
 
 
 def parse_well_no(value):
-    value = (value or '').strip()
+    value = '' if value is None else str(value).strip()
     if value.endswith('.0'):
         value = value[:-2]
-    return value
+    return int(value)
 
 
 def validate_targets(targets):
@@ -223,15 +223,17 @@ def validate_targets(targets):
     for index, target in enumerate(targets, start=2):
         patient_given_names = (target.get('patient_given_names') or '').strip()
         patient_name = (target.get('patient_name') or '').strip()
-        well_no = parse_well_no(target.get('no'))
-        if not patient_given_names:
-            errors.append('第 {} 行缺少 女方姓名'.format(index))
-        if not patient_name:
-            errors.append('第 {} 行缺少 男方姓名'.format(index))
+        try:
+            well_no = parse_well_no(target.get('no'))
+        except ValueError:
+            errors.append('第 {} 行 no 不合法: {}'.format(index, display_value(target.get('no'))))
+            continue
+        if not patient_given_names and not patient_name:
+            errors.append('第 {} 行 女方姓名 和 男方姓名 至少要填写一个'.format(index))
         if not well_no:
             errors.append('第 {} 行缺少 no'.format(index))
-        elif not well_no.isdigit():
-            errors.append('第 {} 行 no 不合法: {}'.format(index, display_value(well_no)))
+        elif not 1 <= well_no <= 16:
+            errors.append('第 {} 行 no 不合法: {}'.format(index, display_value(target.get('no'))))
 
     if errors:
         shown = errors[:20]
@@ -273,14 +275,29 @@ def index_dishrecords(dishrecords):
     return by_name
 
 
+def find_matching_dishrecords(dishrecords, patient_given_names, patient_name):
+    patient_given_names = normalize(patient_given_names)
+    patient_name = normalize(patient_name)
+    matches = []
+
+    for dish in dishrecords:
+        dish_given_names = normalize(dish.get('patient_given_names'))
+        dish_patient_name = normalize(dish.get('patient_name'))
+        if patient_given_names and patient_name:
+            matched = dish_given_names == patient_given_names and dish_patient_name == patient_name
+        elif patient_given_names:
+            matched = dish_given_names == patient_given_names
+        else:
+            matched = dish_patient_name == patient_name
+        if matched:
+            matches.append(dish)
+    return matches
+
+
 def make_video_filename(patient_given_names, patient_name, session_uuid, well_no, zid):
-    return '{}，{}-{}-well{}_zid{}.mp4'.format(
-        safe_filename(patient_given_names),
-        safe_filename(patient_name),
-        safe_filename(session_uuid),
-        safe_filename(well_no),
-        safe_filename(zid),
-    )
+    name_parts = [safe_filename(value) for value in [patient_given_names, patient_name] if (value or '').strip()]
+    name_parts.extend([safe_filename(session_uuid), 'well{:02d}_zid{}.mp4'.format(well_no, safe_filename(zid))])
+    return '-'.join(name_parts)
 
 
 def download_one_video(client, patient_given_names, patient_name, session_uuid, well_no, zid,
@@ -293,7 +310,7 @@ def download_one_video(client, patient_given_names, patient_name, session_uuid, 
         progress('info', '{} {}'.format('已跳过' if result == 'skipped' else '已下载', output_path))
     except Exception as ex:
         summary['failed'] += 1
-        progress('error', '下载失败: {} {} session_uuid={} well{} zid{}: {}'.format(
+        progress('error', '下载失败: {} {} session_uuid={} well{:02d} zid{}: {}'.format(
             patient_given_names, patient_name, session_uuid, well_no, zid, ex))
 
 
@@ -313,7 +330,7 @@ def download_patient_videos(client, input_path, output_dir, overwrite=False,
 
     if rows_without_session_uuid:
         progress('info', '正在获取 dishrecords...')
-        dishrecords = index_dishrecords(client.get_dishrecords())
+        dishrecords = client.get_dishrecords()
 
     for index, target in enumerate(targets, start=1):
         if row_callback:
@@ -332,12 +349,11 @@ def download_patient_videos(client, input_path, output_dir, overwrite=False,
                 row_callback(index, total)
             continue
 
-        key = make_patient_key(patient_given_names, patient_name)
-        matches = dishrecords.get(key, [])
+        matches = find_matching_dishrecords(dishrecords, patient_given_names, patient_name)
 
         if not matches:
             summary['not_found'] += 1
-            progress('warning', '当前服务器未找到 dish，已跳过: {} {} well{}'.format(
+            progress('warning', '当前服务器未找到 dish，已跳过: {} {} well{:02d}'.format(
                 patient_given_names, patient_name, well_no))
             if row_callback:
                 row_callback(index, total)
