@@ -31,11 +31,11 @@ jobs:
           python -m pip install --upgrade nuitka ordered-set zstandard requests openpyxl
 
       - name: Check syntax
-        working-directory: workspace/candle-server/bin
+        working-directory: ./
         run: python -m py_compile download_patient_videos_gui.py
 
       - name: Build exe with Nuitka
-        working-directory: workspace/candle-server/bin
+        working-directory: ./
         shell: cmd
         run: |
           python -m nuitka ^
@@ -54,5 +54,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: DownloadPatientVideos-x86
-          path: workspace/candle-server/bin/dist_nuitka/DownloadPatientVideos_x86.exe
+          path: ./dist_nuitka/DownloadPatientVideos_x86.exe
           if-no-files-found: error
