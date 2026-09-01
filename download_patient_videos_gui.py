@@ -21,7 +21,7 @@ from requests.exceptions import RequestException
 TOKEN_PATH = '/geri_connect/auth/v1/token'
 PUBLIC_API_PREFIX = '/geri_connect/public/api/v1'
 VIDEO_PATH = '/files/video.json/{session_uuid}/well{well_no:02d}_zid{zid}.mp4'
-VIDEO_ZIDS = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '99']
+VIDEO_ZIDS = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '99']
 DEFAULT_REQUEST_TIMEOUT = 30
 DEFAULT_DOWNLOAD_TIMEOUT = 300
 INPUT_COLUMN_ALIASES = {
