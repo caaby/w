@@ -445,7 +445,7 @@ class DownloadPatientVideosApp:
     def __init__(self, root):
         self.root = root
         self.root.title('患者视频下载工具')
-        self.root.geometry('1000x650')
+        self.root.geometry('1200x650')
         self.events = queue.Queue()
         self.worker = None
 
@@ -466,12 +466,15 @@ class DownloadPatientVideosApp:
         frame.columnconfigure(1, weight=1)
         frame.rowconfigure(9, weight=1)
 
+
         help_text = (
-            '使用说明：Excel 必须包含表头【女方姓名】【男方姓名】【no】，【session_uuid】为可选表头。'
-            '女方姓名、男方姓名请与 GCA 页面上的名字、姓氏保持一致；GCA 页面上存在的姓名，Excel 中也需要填写。'
-            'no 必填，表示位孔编号。'
-            '如果程序提示查询到重复数据，会自动跳过该行并标红提示；请在 Excel 中补充 session_uuid 后重新下载，以避免匹配到错误患者。'
+            "使用说明：\n"
+            "1. Excel 必须包含表头 [女方姓名]、[男方姓名]、[no], 其中 [session_uuid] 为可选表头。\n"
+            "2. 女方姓名]、[男方姓名] 需与 GCA 患者页面的 [名字]、[姓氏] 表头数据保持一致。\n"
+            "3. [no] 为必填项，表示位孔编号。\n"
+            "4. 如程序查询到重复数据，将自动跳过该行并标红提示。请在 Excel 中补充[session_uuid]列后重新点击预检并下载，以避免匹配到错误数据。"
         )
+
         ttk.Label(frame, text=help_text, foreground='#004080', wraplength=940, justify=tk.LEFT).grid(
             row=0, column=0, columnspan=3, sticky=tk.EW, pady=(0, 10))
 
