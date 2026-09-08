@@ -16,8 +16,6 @@ from urllib.parse import urljoin
 import requests
 from requests.exceptions import RequestException
 
-
-
 TOKEN_PATH = '/geri_connect/auth/v1/token'
 PUBLIC_API_PREFIX = '/geri_connect/public/api/v1'
 VIDEO_PATH = '/files/video.json/{session_uuid}/well{well_no:02d}_zid{zid}.mp4'
@@ -391,41 +389,43 @@ def download_patient_videos(client, input_path, output_dir, overwrite=False,
             if row_callback:
                 row_callback(index, total)
             continue
-        if len(matches) > 1:
+        dish_uuids = []
+        for dish in matches:
+            dish_uuid = dish.get('dish_uuid')
+            if dish_uuid and dish_uuid not in dish_uuids:
+                dish_uuids.append(dish_uuid)
+
+        sessions = []
+        for dish_uuid in dish_uuids:
+            dish_sessions = client.get_sessionrecords(dish_uuid)
+            sessions.extend([session for session in dish_sessions if session.get('status') != 'Deleted'])
+
+        if not sessions:
+            summary['no_session'] += 1
+            progress('warning', 'Excel 第 {} 行：当前服务器未找到未删除的 session，已跳过: 病历号={} dish_uuid={}'.format(
+                row_number, identifier_1, ','.join(dish_uuids)))
+            if row_callback:
+                row_callback(index, total)
+            continue
+        if len(sessions) > 1:
             summary['failed'] += 1
-            progress('error', 'Excel 第 {} 行：查询到重复的数据，为避免配对错误已跳过该患者。可以在 Excel 添加一列 session_uuid，用来匹配正确的数据: 病历号={} well{:02d}, dish 数量={}'.format(
-                row_number, identifier_1, well_no, len(matches)))
+            progress('error', 'Excel 第 {} 行：查询到重复的未删除 session {} 条，为避免配对错误已跳过该患者。可以在 Excel 添加一列 session_uuid，用来匹配正确的数据: 病历号={} dish_uuid={}'.format(
+                row_number, len(sessions), identifier_1, ','.join(dish_uuids),))
             if row_callback:
                 row_callback(index, total)
             continue
 
-        for dish in matches:
-            dish_uuid = dish.get('dish_uuid')
-            sessions = client.get_sessionrecords(dish_uuid)
-            if not sessions:
+        for session in sessions:
+            session_uuid = session.get('session_uuid')
+            if not session_uuid:
                 summary['no_session'] += 1
-                progress('warning', 'Excel 第 {} 行：当前服务器未找到 session，已跳过: {} {} dish_uuid={}'.format(
-                    row_number, patient_given_names, patient_name, dish_uuid))
+                progress('warning', 'Excel 第 {} 行：sessionrecord 缺少 session_uuid，已跳过: 病历号={} dish_uuid={}'.format(
+                    row_number, identifier_1, ','.join(dish_uuids)))
                 continue
-            if len(sessions) > 1:
-                summary['failed'] += 1
-                progress('error', 'Excel 第 {} 行：查询到重复的数据，为避免配对错误已跳过该患者。可以在 Excel 添加一列 session_uuid，用来匹配正确的数据: {} {} dish_uuid={}, session 数量={}'.format(
-                    row_number, patient_given_names, patient_name, dish_uuid, len(sessions)))
-                if row_callback:
-                    row_callback(index, total)
-                continue
-
-            for session in sessions:
-                session_uuid = session.get('session_uuid')
-                if not session_uuid:
-                    summary['no_session'] += 1
-                    progress('warning', 'Excel 第 {} 行：sessionrecord 缺少 session_uuid，已跳过: {} {} dish_uuid={}'.format(
-                        row_number, patient_given_names, patient_name, dish_uuid))
-                    continue
-                age_at_start = session.get('age_at_start')
-                for zid in VIDEO_ZIDS:
-                    download_one_video(client, patient_given_names, patient_name, session_uuid, well_no, zid,
-                                       output_dir, overwrite, summary, progress, age_at_start=age_at_start)
+            age_at_start = session.get('age_at_start')
+            for zid in VIDEO_ZIDS:
+                download_one_video(client, patient_given_names, patient_name, session_uuid, well_no, zid,
+                                   output_dir, overwrite, summary, progress, age_at_start=age_at_start)
 
         if row_callback:
             row_callback(index, total)
@@ -668,4 +668,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
