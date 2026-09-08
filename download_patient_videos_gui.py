@@ -25,11 +25,12 @@ VIDEO_ZIDS = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', 
 DEFAULT_REQUEST_TIMEOUT = 30
 DEFAULT_DOWNLOAD_TIMEOUT = 300
 INPUT_COLUMN_ALIASES = {
-    'patient_given_names': ['女方姓名'],
-    'patient_name': ['男方姓名'],
+    'identifier_1': ['病历号'],
     'no': ['no'],
 }
 OPTIONAL_INPUT_COLUMN_ALIASES = {
+    'patient_given_names': ['女方姓名'],
+    'patient_name': ['男方姓名'],
     'session_uuid': ['session_uuid'],
 }
 
@@ -142,8 +143,9 @@ def resolve_input_columns(fieldnames):
 
 def canonicalize_target(row, columns, row_number=None):
     return {
-        'patient_given_names': row.get(columns['patient_given_names'], ''),
-        'patient_name': row.get(columns['patient_name'], ''),
+        'identifier_1': row.get(columns['identifier_1'], ''),
+        'patient_given_names': row.get(columns['patient_given_names'], '') if 'patient_given_names' in columns else '',
+        'patient_name': row.get(columns['patient_name'], '') if 'patient_name' in columns else '',
         'no': row.get(columns['no'], ''),
         'session_uuid': row.get(columns['session_uuid'], '') if 'session_uuid' in columns else '',
         '_row_number': row_number,
@@ -229,8 +231,7 @@ def validate_targets(targets):
     errors = []
     for index, target in enumerate(targets, start=2):
         row_number = target.get('_row_number') or index
-        patient_given_names = (target.get('patient_given_names') or '').strip()
-        patient_name = (target.get('patient_name') or '').strip()
+        identifier_1 = (target.get('identifier_1') or '').strip()
         if not (target.get('no') or '').strip():
             errors.append('第 {} 行缺少 no'.format(row_number))
             continue
@@ -239,8 +240,8 @@ def validate_targets(targets):
         except (TypeError, ValueError):
             errors.append('第 {} 行 no 不合法: {}'.format(row_number, display_value(target.get('no'))))
             continue
-        if not patient_given_names and not patient_name:
-            errors.append('第 {} 行 女方姓名 和 男方姓名 至少要填写一个'.format(row_number))
+        if not identifier_1:
+            errors.append('第 {} 行缺少 病历号'.format(row_number))
         if not 1 <= well_no <= 16:
             errors.append('第 {} 行 no 不合法: {}'.format(row_number, display_value(target.get('no'))))
 
@@ -277,28 +278,19 @@ def check_output_dir_writable(output_dir):
 
 
 def index_dishrecords(dishrecords):
-    by_name = {}
+    by_identifier = {}
     for dish in dishrecords:
-        key = make_patient_key(dish.get('patient_given_names'), dish.get('patient_name'))
-        by_name.setdefault(key, []).append(dish)
-    return by_name
+        key = normalize(dish.get('identifier_1'))
+        by_identifier.setdefault(key, []).append(dish)
+    return by_identifier
 
 
-def find_matching_dishrecords(dishrecords, patient_given_names, patient_name):
-    patient_given_names = normalize(patient_given_names)
-    patient_name = normalize(patient_name)
+def find_matching_dishrecords(dishrecords, identifier_1):
+    identifier_1 = normalize(identifier_1)
     matches = []
 
     for dish in dishrecords:
-        dish_given_names = normalize(dish.get('patient_given_names'))
-        dish_patient_name = normalize(dish.get('patient_name'))
-        if patient_given_names and patient_name:
-            matched = dish_given_names == patient_given_names and dish_patient_name == patient_name
-        elif patient_given_names:
-            matched = dish_given_names == patient_given_names
-        else:
-            matched = dish_patient_name == patient_name
-        if matched:
+        if normalize(dish.get('identifier_1')) == identifier_1:
             matches.append(dish)
     return matches
 
@@ -361,6 +353,7 @@ def download_patient_videos(client, input_path, output_dir, overwrite=False,
 
         patient_given_names = target.get('patient_given_names')
         patient_name = target.get('patient_name')
+        identifier_1 = target.get('identifier_1')
         row_number = target.get('_row_number') or index + 1
         well_no = parse_well_no(target.get('no'))
         session_uuid = (target.get('session_uuid') or '').strip()
@@ -389,19 +382,19 @@ def download_patient_videos(client, input_path, output_dir, overwrite=False,
                 row_callback(index, total)
             continue
 
-        matches = find_matching_dishrecords(dishrecords, patient_given_names, patient_name)
+        matches = find_matching_dishrecords(dishrecords, identifier_1)
 
         if not matches:
             summary['not_found'] += 1
-            progress('warning', 'Excel 第 {} 行：当前服务器未找到 dish，已跳过: {} {} well{:02d}'.format(
-                row_number, patient_given_names, patient_name, well_no))
+            progress('warning', 'Excel 第 {} 行：当前服务器未找到 dish，已跳过: 病历号={} well{:02d}'.format(
+                row_number, identifier_1, well_no))
             if row_callback:
                 row_callback(index, total)
             continue
         if len(matches) > 1:
             summary['failed'] += 1
-            progress('error', 'Excel 第 {} 行：查询到重复的数据，为避免配对错误已跳过该患者。可以在 Excel 添加一列 session_uuid，用来匹配正确的数据: {} {} well{:02d}, dish 数量={}'.format(
-                row_number, patient_given_names, patient_name, well_no, len(matches)))
+            progress('error', 'Excel 第 {} 行：查询到重复的数据，为避免配对错误已跳过该患者。可以在 Excel 添加一列 session_uuid，用来匹配正确的数据: 病历号={} well{:02d}, dish 数量={}'.format(
+                row_number, identifier_1, well_no, len(matches)))
             if row_callback:
                 row_callback(index, total)
             continue
@@ -469,8 +462,8 @@ class DownloadPatientVideosApp:
 
         help_text = (
             "使用说明：\n"
-            "1. Excel 必须包含表头 [女方姓名]、[男方姓名]、[no], 其中 [session_uuid] 为可选表头。\n"
-            "2. 女方姓名]、[男方姓名] 需与 GCA 患者页面的 [名字]、[姓氏] 表头数据保持一致。\n"
+            "1. Excel 必须包含表头 [病历号]、[no], 其中 [女方姓名]、[男方姓名]、[session_uuid] 为可选表头。\n"
+            "2. [病历号] 需与 GCA dishrecords 的 [identifier_1] 数据保持一致。\n"
             "3. [no] 为必填项，表示位孔编号。\n"
             "4. 如程序查询到重复数据，将自动跳过该行并标红提示。请在 Excel 中补充[session_uuid]列后重新点击预检并下载，以避免匹配到错误数据。"
         )
@@ -675,3 +668,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
