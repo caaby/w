@@ -16,6 +16,8 @@ from urllib.parse import urljoin
 import requests
 from requests.exceptions import RequestException
 
+
+
 TOKEN_PATH = '/geri_connect/auth/v1/token'
 PUBLIC_API_PREFIX = '/geri_connect/public/api/v1'
 VIDEO_PATH = '/files/video.json/{session_uuid}/well{well_no:02d}_zid{zid}.mp4'
@@ -293,6 +295,28 @@ def find_matching_dishrecords(dishrecords, identifier_1):
     return matches
 
 
+def merge_sessions_by_uuid(sessions):
+    merged = []
+    seen = set()
+    for session in sessions:
+        session_uuid = session.get('session_uuid')
+        key = session_uuid or id(session)
+        if key in seen:
+            continue
+        seen.add(key)
+        merged.append(session)
+    return merged
+
+
+def format_session_uuids(sessions):
+    session_uuids = []
+    for session in sessions:
+        session_uuid = session.get('session_uuid')
+        if session_uuid:
+            session_uuids.append(str(session_uuid))
+    return ','.join(session_uuids)
+
+
 def format_start_time(age_at_start):
     if age_at_start is None or age_at_start == '':
         return '00.00'
@@ -398,19 +422,20 @@ def download_patient_videos(client, input_path, output_dir, overwrite=False,
         sessions = []
         for dish_uuid in dish_uuids:
             dish_sessions = client.get_sessionrecords(dish_uuid)
-            sessions.extend([session for session in dish_sessions if session.get('status') != 'Deleted'])
+            sessions.extend(dish_sessions)
+        sessions = merge_sessions_by_uuid(sessions)
 
         if not sessions:
             summary['no_session'] += 1
-            progress('warning', 'Excel 第 {} 行：当前服务器未找到未删除的 session，已跳过: 病历号={} dish_uuid={}'.format(
+            progress('warning', 'Excel 第 {} 行：当前服务器未找到 session，已跳过: 病历号={} dish_uuid={}'.format(
                 row_number, identifier_1, ','.join(dish_uuids)))
             if row_callback:
                 row_callback(index, total)
             continue
         if len(sessions) > 1:
             summary['failed'] += 1
-            progress('error', 'Excel 第 {} 行：查询到重复的未删除 session {} 条，为避免配对错误已跳过该患者。可以在 Excel 添加一列 session_uuid，用来匹配正确的数据: 病历号={} dish_uuid={}'.format(
-                row_number, len(sessions), identifier_1, ','.join(dish_uuids),))
+            progress('error', 'Excel 第 {} 行：查询到重复的 session {} 条，为避免配对错误已跳过该患者。可以在 Excel 添加一列 session_uuid，用来匹配正确的数据: 病历号={} dish_uuid={} session_uuid={}'.format(
+                row_number, len(sessions), identifier_1, ','.join(dish_uuids), format_session_uuids(sessions)))
             if row_callback:
                 row_callback(index, total)
             continue
@@ -668,3 +693,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
