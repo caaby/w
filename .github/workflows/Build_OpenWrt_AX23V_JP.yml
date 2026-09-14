@@ -1,0 +1,456 @@
+name: Build OpenWrt AX23V JP
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            clang \
+            flex \
+            bison \
+            g++ \
+            gawk \
+            gettext \
+            git \
+            libncurses-dev \
+            libssl-dev \
+            python3 \
+            python3-setuptools \
+            rsync \
+            unzip \
+            zlib1g-dev \
+            file \
+            wget \
+            xsltproc \
+            swig \
+            patch \
+            libelf-dev \
+            python3-pyelftools
+
+      - name: Clone OpenWrt
+        run: |
+          git clone \
+            --depth 1 \
+            --branch v25.12.3 \
+            https://github.com/openwrt/openwrt.git
+
+      - name: Update feeds
+        working-directory: openwrt
+        run: |
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+
+      # ============================================================
+      # Configure target
+      # ============================================================
+
+      - name: Configure
+        working-directory: openwrt
+        run: |
+          cat > .config <<'EOF'
+          CONFIG_TARGET_ramips=y
+          CONFIG_TARGET_ramips_mt7621=y
+          CONFIG_TARGET_ramips_mt7621_DEVICE_tplink_archer-ax23-v1=y
+
+          CONFIG_PACKAGE_luci=y
+          CONFIG_PACKAGE_luci-ssl=y
+          EOF
+
+          make defconfig
+
+      # ============================================================
+      # First compile firmware-utils
+      #
+      # This creates:
+      # build_dir/host/firmware-utils-*/src/tplink-safeloader.c
+      # ============================================================
+
+      - name: Prepare firmware-utils
+        working-directory: openwrt
+        run: |
+          make tools/firmware-utils/compile V=s
+
+      # ============================================================
+      # AX23V(JP) modifications
+      # ============================================================
+
+      - name: Apply AX23V JP modifications
+        working-directory: openwrt
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python3 <<'PY'
+          from pathlib import Path
+          import subprocess
+
+          # ========================================================
+          # 1. Modify AX23 DTS
+          # ========================================================
+
+          dts = Path(
+              "target/linux/ramips/dts/"
+              "mt7621_tplink_archer-ax23-v1.dts"
+          )
+
+          text = dts.read_text()
+
+          # --------------------------------------------------------
+          # gmac1
+          # --------------------------------------------------------
+
+          old = """&gmac1 {
+          	status = "okay";
+          	label = "wan";
+          	phy-handle = <&ethphy4>;
+
+          	nvmem-cells = <&macaddr_config_8 1>;
+          	nvmem-cell-names = "mac-address";
+          };"""
+
+          new = """&gmac1 {
+          	status = "okay";
+          	label = "wan";
+          	phy-handle = <&ethphy0>;
+
+          	nvmem-cells = <&macaddr_config_8 1>;
+          	nvmem-cell-names = "mac-address";
+          };"""
+
+          if old not in text:
+              raise SystemExit(
+                  "ERROR: gmac1 block not found"
+              )
+
+          text = text.replace(old, new, 1)
+
+          # --------------------------------------------------------
+          # ethphy
+          # --------------------------------------------------------
+
+          old = """&ethphy4 {
+          	/delete-property/ interrupts;
+          };"""
+
+          new = """&ethphy0 {
+          	/delete-property/ interrupts;
+          };"""
+
+          if old not in text:
+              raise SystemExit(
+                  "ERROR: ethphy4 block not found"
+              )
+
+          text = text.replace(old, new, 1)
+
+          # --------------------------------------------------------
+          # Switch ports
+          # --------------------------------------------------------
+
+          old = """&switch0 {
+          	ports {
+          		port@0 {
+          			status = "okay";
+          			label = "lan1";
+          		};
+
+          		port@1 {
+          			status = "okay";
+          			label = "lan2";
+          		};
+
+          		port@2 {
+          			status = "okay";
+          			label = "lan3";
+          		};
+          		port@3 {
+          			status = "okay";
+          			label = "lan4";
+          		};
+          	};
+          };"""
+
+          new = """&switch0 {
+          	ports {
+          		port@1 {
+          			status = "okay";
+          			label = "lan1";
+          		};
+
+          		port@2 {
+          			status = "okay";
+          			label = "lan2";
+          		};
+
+          		port@3 {
+          			status = "okay";
+          			label = "lan3";
+          		};
+
+          		port@4 {
+          			status = "okay";
+          			label = "lan4";
+          		};
+          	};
+          };"""
+
+          if old not in text:
+              raise SystemExit(
+                  "ERROR: switch port block not found"
+              )
+
+          text = text.replace(old, new, 1)
+
+          dts.write_text(text)
+
+          # ========================================================
+          # Verify DTS
+          # ========================================================
+
+          text = dts.read_text()
+
+          required = [
+              'phy-handle = <&ethphy0>;',
+              '&ethphy0 {',
+              'port@1 {',
+              'port@2 {',
+              'port@3 {',
+              'port@4 {',
+              'label = "lan1";',
+              'label = "lan2";',
+              'label = "lan3";',
+              'label = "lan4";',
+          ]
+
+          for item in required:
+              if item not in text:
+                  raise SystemExit(
+                      f"ERROR: DTS verification failed: {item}"
+                  )
+
+          if 'phy-handle = <&ethphy4>;' in text:
+              raise SystemExit(
+                  "ERROR: old ethphy4 gmac mapping still exists"
+              )
+
+          if 'port@0 {' in text:
+              raise SystemExit(
+                  "ERROR: port@0 still exists"
+              )
+
+          print("DTS modification + verification OK")
+
+          # ========================================================
+          # 2. Find generated tplink-safeloader.c
+          # ========================================================
+
+          candidates = list(
+              Path("build_dir/host").glob(
+                  "firmware-utils-*/src/tplink-safeloader.c"
+              )
+          )
+
+          if not candidates:
+              raise SystemExit(
+                  "ERROR: generated tplink-safeloader.c not found"
+              )
+
+          if len(candidates) != 1:
+              raise SystemExit(
+                  "ERROR: multiple tplink-safeloader.c found:\n"
+                  + "\n".join(map(str, candidates))
+              )
+
+          safeloader = candidates[0]
+
+          print(
+              f"Using safeloader: {safeloader}"
+          )
+
+          # ========================================================
+          # 3. Add AX23V support
+          # ========================================================
+
+          text = safeloader.read_text()
+
+          old = (
+              '                            '
+              '"{product_name:Archer AX23,'
+              'product_ver:1.0,'
+              'special_id:4A500000}\\n"\n'
+          )
+
+          new = (
+              old +
+              '                            '
+              '"{product_name:Archer AX23V,'
+              'product_ver:1.0,'
+              'special_id:4A500000}\\n"\n'
+          )
+
+          if "product_name:Archer AX23V" in text:
+              print(
+                  "AX23V safeloader entry already exists"
+              )
+
+          else:
+              if old not in text:
+                  raise SystemExit(
+                      "ERROR: expected AX23 safeloader entry "
+                      "not found"
+                  )
+
+              text = text.replace(old, new, 1)
+
+              safeloader.write_text(text)
+
+              print(
+                  "AX23V safeloader entry added"
+              )
+
+          # ========================================================
+          # Show diff
+          # ========================================================
+
+          print()
+          print("========== DTS DIFF ==========")
+
+          subprocess.run(
+              ["git", "diff", "--", str(dts)],
+              check=False
+          )
+
+          print()
+          print("====== SAFELOADER CONTENT ======")
+
+          for line in safeloader.read_text().splitlines():
+              if "Archer AX23" in line:
+                  print(line)
+
+          PY
+
+      # ============================================================
+      # Recompile modified firmware-utils
+      # ============================================================
+
+      - name: Rebuild firmware-utils
+        working-directory: openwrt
+        run: |
+          make tools/firmware-utils/compile V=s
+
+      # ============================================================
+      # Build OpenWrt
+      # ============================================================
+
+      - name: Build OpenWrt
+        working-directory: openwrt
+        run: |
+          make -j$(nproc) V=s
+
+      # ============================================================
+      # Verify
+      # ============================================================
+
+      - name: Verify firmware
+        working-directory: openwrt
+        run: |
+          set -e
+
+          TARGET="bin/targets/ramips/mt7621"
+
+          echo "========== BUILD OUTPUT =========="
+
+          ls -lh "$TARGET"
+
+          FACTORY=$(find "$TARGET" \
+            -name '*factory*.bin' \
+            -type f \
+            | head -n 1)
+
+          SYSUPGRADE=$(find "$TARGET" \
+            -name '*sysupgrade*.bin' \
+            -type f \
+            | head -n 1)
+
+          if [ -z "$FACTORY" ]; then
+            echo "ERROR: factory.bin not found"
+            exit 1
+          fi
+
+          if [ -z "$SYSUPGRADE" ]; then
+            echo "ERROR: sysupgrade.bin not found"
+            exit 1
+          fi
+
+          echo
+          echo "Factory:"
+          echo "$FACTORY"
+
+          echo
+          echo "Sysupgrade:"
+          echo "$SYSUPGRADE"
+
+          echo
+          echo "========== AX23V CHECK =========="
+
+          strings "$FACTORY" | grep -i "AX23V" || true
+
+          echo
+          echo "========== SHA256 =========="
+
+          sha256sum "$FACTORY"
+          sha256sum "$SYSUPGRADE"
+
+      # ============================================================
+      # Upload
+      # ============================================================
+
+      - name: Collect firmware
+        run: |
+          set -e
+
+          mkdir -p release
+
+          TARGET="openwrt/bin/targets/ramips/mt7621"
+
+          find "$TARGET" \
+            -name '*factory*.bin' \
+            -type f \
+            -exec cp {} release/ \;
+
+          find "$TARGET" \
+            -name '*sysupgrade*.bin' \
+            -type f \
+            -exec cp {} release/ \;
+
+          cp "$TARGET/sha256sums" \
+            release/ || true
+
+          cp "$TARGET/version.buildinfo" \
+            release/ || true
+
+          echo "========== RELEASE =========="
+
+          ls -lh release/
+
+          echo
+          echo "========== SHA256 =========="
+
+          sha256sum release/*.bin
+
+      - name: Upload firmware
+        uses: actions/upload-artifact@v4
+        with:
+          name: ax23v-jp-openwrt-v25.12.3
+          path: release/
