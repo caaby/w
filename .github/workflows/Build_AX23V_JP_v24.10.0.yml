@@ -1,4 +1,4 @@
-name: Build OpenWrt AX23V JP
+name: Build OpenWrt AX23V JP 24.10.0
 
 on:
   workflow_dispatch:
