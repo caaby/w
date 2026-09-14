@@ -1,0 +1,521 @@
+name: Build OpenWrt AX23V JP
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    steps:
+      # ==========================================================
+      # 1. 安装他使用的编译依赖
+      # ==========================================================
+
+      - name: Install build dependencies
+        run: |
+          sudo apt update
+
+          sudo apt install -y \
+            build-essential \
+            clang \
+            flex \
+            bison \
+            g++ \
+            gawk \
+            gcc-multilib \
+            g++-multilib \
+            gettext \
+            git \
+            libncurses5-dev \
+            libssl-dev \
+            python3-setuptools \
+            rsync \
+            swig \
+            unzip \
+            zlib1g-dev \
+            file \
+            wget \
+            subversion \
+            patch \
+            signfile \
+            python3-pyelftools \
+            libelf-dev
+
+      # ==========================================================
+      # 2. 拉取 OpenWrt v24.10.4
+      # ==========================================================
+
+      - name: Clone OpenWrt
+        run: |
+          git clone \
+            --depth 1 \
+            --branch v24.10.4 \
+            https://github.com/openwrt/openwrt.git
+
+      # ==========================================================
+      # 3. feeds
+      # ==========================================================
+
+      - name: Update feeds
+        working-directory: openwrt
+        run: |
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+
+      # ==========================================================
+      # 4. 配置
+      #
+      # 对应原作者：
+      #
+      # Target System
+      #   MediaTek Ralink MIPS
+      #
+      # Subtarget
+      #   MT7621 based boards
+      #
+      # Target Profile
+      #   TP-Link Archer AX23 v1
+      #
+      # 另外选择 LuCI / Japanese / usteer
+      # ==========================================================
+
+      - name: Configure
+        working-directory: openwrt
+        run: |
+          cat > .config <<'EOF'
+          CONFIG_TARGET_ramips=y
+          CONFIG_TARGET_ramips_mt7621=y
+          CONFIG_TARGET_ramips_mt7621_DEVICE_tplink_archer-ax23-v1=y
+
+          CONFIG_PACKAGE_luci=y
+          CONFIG_PACKAGE_luci-i18n-base-ja=y
+          CONFIG_PACKAGE_usteer=y
+          CONFIG_PACKAGE_luci-app-usteer=y
+          EOF
+
+          make defconfig
+
+      # ==========================================================
+      # 5. 按原作者方法先编译 firmware-utils
+      #
+      # 这样 build_dir/host/firmware-utils-*/src/
+      # 里面才会出现 tplink-safeloader.c
+      # ==========================================================
+
+      - name: Prepare firmware-utils
+        working-directory: openwrt
+        run: |
+          make tools/firmware-utils/compile V=s
+
+      # ==========================================================
+      # 6. 修改 AX23V(JP)
+      #
+      # 完全按照原作者的修改：
+      #
+      # gmac1:
+      #   ethphy4 -> ethphy0
+      #
+      # ethphy:
+      #   ethphy4 -> ethphy0
+      #
+      # switch:
+      #   port@0 -> port@1 / lan1
+      #   port@1 -> port@2 / lan2
+      #   port@2 -> port@3 / lan3
+      #   port@3 -> port@4 / lan4
+      #
+      # safeloader:
+      #   增加 Archer AX23V
+      # ==========================================================
+
+      - name: Apply AX23V JP modifications
+        working-directory: openwrt
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python3 <<'PY'
+          from pathlib import Path
+
+          # ========================================================
+          # DTS
+          # ========================================================
+
+          dts = Path(
+              "target/linux/ramips/dts/"
+              "mt7621_tplink_archer-ax23-v1.dts"
+          )
+
+          text = dts.read_text()
+
+          # --------------------------------------------------------
+          # gmac1: ethphy4 -> ethphy0
+          # --------------------------------------------------------
+
+          old = 'phy-handle = <&ethphy4>;'
+          new = 'phy-handle = <&ethphy0>;'
+
+          if text.count(old) != 1:
+              raise SystemExit(
+                  "ERROR: expected exactly one "
+                  "ethphy4 gmac mapping"
+              )
+
+          text = text.replace(old, new, 1)
+
+          # --------------------------------------------------------
+          # ethphy4 -> ethphy0
+          # --------------------------------------------------------
+
+          old = """&ethphy4 {
+          	/delete-property/ interrupts;
+          };"""
+
+          new = """&ethphy0 {
+          	/delete-property/ interrupts;
+          };"""
+
+          if old not in text:
+              raise SystemExit(
+                  "ERROR: expected ethphy4 block not found"
+              )
+
+          text = text.replace(old, new, 1)
+
+          # --------------------------------------------------------
+          # switch port mapping
+          # --------------------------------------------------------
+          #
+          # 原作者：
+          #
+          # port@0 -> port@1
+          # port@1 -> port@2
+          # port@2 -> port@3
+          # port@3 -> port@4
+          #
+          # 标签仍然保持：
+          #
+          # lan1
+          # lan2
+          # lan3
+          # lan4
+          # --------------------------------------------------------
+
+          replacements = [
+              ('port@0 {', 'port@1 {', 1),
+              ('port@1 {', 'port@2 {', 1),
+              ('port@2 {', 'port@3 {', 1),
+              ('port@3 {', 'port@4 {', 1),
+          ]
+
+          # 不直接做全文件 replace，精确处理 switch0 区域
+          switch_start = text.find('&switch0 {')
+
+          if switch_start == -1:
+              raise SystemExit(
+                  "ERROR: &switch0 not found"
+              )
+
+          switch_end = text.find('\n};', switch_start)
+
+          if switch_end == -1:
+              raise SystemExit(
+                  "ERROR: switch0 block end not found"
+              )
+
+          switch_end += 3
+
+          before = text[:switch_start]
+          switch = text[switch_start:switch_end]
+          after = text[switch_end:]
+
+          # 原始 AX23 DTS 必须是 port@0~port@3
+          for port in range(4):
+              if f'port@{port} {{' not in switch:
+                  raise SystemExit(
+                      f"ERROR: expected port@{port} "
+                      "inside switch0"
+                  )
+
+          # 从后往前改，避免 port@1 -> port@2 后再次被替换
+          for old_port, new_port in reversed(
+              [(0, 1), (1, 2), (2, 3), (3, 4)]
+          ):
+              old = f'port@{old_port} {{'
+              new = f'port@{new_port} {{'
+              switch = switch.replace(old, new, 1)
+
+          text = before + switch + after
+
+          dts.write_text(text)
+
+          # ========================================================
+          # 验证 DTS
+          # ========================================================
+
+          text = dts.read_text()
+
+          if 'phy-handle = <&ethphy4>;' in text:
+              raise SystemExit(
+                  "ERROR: ethphy4 still exists"
+              )
+
+          if 'phy-handle = <&ethphy0>;' not in text:
+              raise SystemExit(
+                  "ERROR: ethphy0 not found"
+              )
+
+          switch_start = text.find('&switch0 {')
+          switch_end = text.find('\n};', switch_start)
+
+          switch = text[switch_start:switch_end]
+
+          for port in range(1, 5):
+              if f'port@{port} {{' not in switch:
+                  raise SystemExit(
+                      f"ERROR: port@{port} missing"
+                  )
+
+          if 'port@0 {' in switch:
+              raise SystemExit(
+                  "ERROR: port@0 still exists"
+              )
+
+          print("AX23V DTS modification OK")
+
+          # ========================================================
+          # tplink-safeloader.c
+          # ========================================================
+
+          candidates = list(
+              Path("build_dir/host").glob(
+                  "firmware-utils-*/src/tplink-safeloader.c"
+              )
+          )
+
+          if len(candidates) != 1:
+              raise SystemExit(
+                  "ERROR: expected exactly one "
+                  "tplink-safeloader.c, found "
+                  + str(len(candidates))
+              )
+
+          safeloader = candidates[0]
+
+          print(
+              "Using:",
+              safeloader
+          )
+
+          text = safeloader.read_text()
+
+          # --------------------------------------------------------
+          # AX23V
+          #
+          # AX1800 v2.0 不添加！
+          # 原作者的 v24.10.4 中已经存在。
+          # --------------------------------------------------------
+
+          ax23v = (
+              '{product_name:Archer AX23V,'
+              'product_ver:1.0,'
+              'special_id:4A500000}\\n'
+          )
+
+          ax1800 = (
+              '{product_name:Archer AX1800,'
+              'product_ver:2.0,'
+              'special_id:4A500000}\\n'
+          )
+
+          # AX1800 必须原本就存在
+          if ax1800 not in text:
+              raise SystemExit(
+                  "ERROR: original Archer AX1800 v2.0 "
+                  "entry is missing"
+              )
+
+          # AX23V 如果已经存在，不重复添加
+          if ax23v in text:
+              print(
+                  "Archer AX23V entry already exists"
+              )
+          else:
+              # 找到 AX23 v1.0 / 4A500000
+              target = (
+                  '{product_name:Archer AX23,'
+                  'product_ver:1.0,'
+                  'special_id:4A500000}\\n'
+              )
+
+              if target not in text:
+                  raise SystemExit(
+                      "ERROR: AX23 base support entry "
+                      "not found"
+                  )
+
+              text = text.replace(
+                  target,
+                  target + ax23v,
+                  1
+              )
+
+              safeloader.write_text(text)
+
+              print(
+                  "Archer AX23V entry added"
+              )
+
+          # ========================================================
+          # 最终 safeloader 检查
+          # ========================================================
+
+          text = safeloader.read_text()
+
+          if ax23v not in text:
+              raise SystemExit(
+                  "ERROR: AX23V entry missing"
+              )
+
+          if ax1800 not in text:
+              raise SystemExit(
+                  "ERROR: AX1800 v2.0 entry missing"
+              )
+
+          print()
+          print("========== SAFELOADER CHECK ==========")
+
+          for line in text.splitlines():
+              if (
+                  "Archer AX23V" in line
+                  or "Archer AX1800" in line
+              ):
+                  print(line)
+
+          PY
+
+      # ==========================================================
+      # 7. 重新编译 firmware-utils
+      # ==========================================================
+
+      - name: Rebuild firmware-utils
+        working-directory: openwrt
+        run: |
+          make tools/firmware-utils/compile V=s
+
+      # ==========================================================
+      # 8. Build
+      # ==========================================================
+
+      - name: Build OpenWrt
+        working-directory: openwrt
+        run: |
+          make -j$(nproc) V=s
+
+      # ==========================================================
+      # 9. 检查生成结果
+      # ==========================================================
+
+      - name: Verify firmware
+        working-directory: openwrt
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          TARGET="bin/targets/ramips/mt7621"
+
+          echo "========== BUILD OUTPUT =========="
+          ls -lh "$TARGET"
+
+          FACTORY=$(find "$TARGET" \
+            -type f \
+            -name '*factory*.bin' \
+            | head -n 1)
+
+          SYSUPGRADE=$(find "$TARGET" \
+            -type f \
+            -name '*sysupgrade*.bin' \
+            | head -n 1)
+
+          if [ -z "$FACTORY" ]; then
+            echo "ERROR: factory.bin not found"
+            exit 1
+          fi
+
+          if [ -z "$SYSUPGRADE" ]; then
+            echo "ERROR: sysupgrade.bin not found"
+            exit 1
+          fi
+
+          echo
+          echo "Factory:"
+          echo "$FACTORY"
+
+          echo
+          echo "Sysupgrade:"
+          echo "$SYSUPGRADE"
+
+          # ========================================================
+          # 按原作者的方法检查 AX23V
+          # ========================================================
+
+          echo
+          echo "========== AX23V CHECK =========="
+
+          if strings "$FACTORY" | grep -qi "ax23v"; then
+            echo "AX23V found in factory image."
+          else
+            echo "ERROR: AX23V NOT found in factory image."
+            exit 1
+          fi
+
+          echo
+          echo "========== SHA256 =========="
+
+          sha256sum "$FACTORY"
+          sha256sum "$SYSUPGRADE"
+
+      # ==========================================================
+      # 10. 上传 Artifact
+      # ==========================================================
+
+      - name: Collect firmware
+        run: |
+          set -euo pipefail
+
+          mkdir -p release
+
+          TARGET="openwrt/bin/targets/ramips/mt7621"
+
+          find "$TARGET" \
+            -type f \
+            -name '*factory*.bin' \
+            -exec cp {} release/ \;
+
+          find "$TARGET" \
+            -type f \
+            -name '*sysupgrade*.bin' \
+            -exec cp {} release/ \;
+
+          cp "$TARGET/sha256sums" \
+            release/
+
+          cp "$TARGET/version.buildinfo" \
+            release/ || true
+
+          echo "========== RELEASE =========="
+          ls -lh release/
+
+          echo
+          echo "========== SHA256 =========="
+          sha256sum release/*.bin
+
+      - name: Upload firmware
+        uses: actions/upload-artifact@v4
+        with:
+          name: ax23v-jp-openwrt-v24.10.4
+          path: release/
