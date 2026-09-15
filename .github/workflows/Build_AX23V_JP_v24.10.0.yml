@@ -41,7 +41,6 @@ jobs:
             wget \
             subversion \
             patch \
-            signfile \
             python3-pyelftools \
             libelf-dev
 
