@@ -1,4 +1,3 @@
-```yaml
 name: Build OpenWrt AX23V
 
 on:
@@ -390,4 +389,3 @@ jobs:
           path: release/
           if-no-files-found: error
           retention-days: 30
-```
