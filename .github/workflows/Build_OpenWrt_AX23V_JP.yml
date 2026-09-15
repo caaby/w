@@ -1,514 +1,109 @@
-name: Build OpenWrt AX23V
-
-on:
-  workflow_dispatch:
-
-permissions:
-  contents: read
-
-jobs:
-  build:
-    runs-on: ubuntu-24.04
-
-    steps:
-
-      # ============================================================
-      # 1. Checkout
-      # ============================================================
-      - name: Checkout
-        uses: actions/checkout@v5
-
-
-      # ============================================================
-      # 2. Install dependencies
-      # ============================================================
-      - name: Install dependencies
-        run: |
-          set -eu
-
-          sudo apt-get update
-
-          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
-            build-essential \
-            clang \
-            flex \
-            bison \
-            g++ \
-            gawk \
-            gcc-multilib \
-            g++-multilib \
-            gettext \
-            git \
-            libncurses5-dev \
-            libssl-dev \
-            python3-setuptools \
-            rsync \
-            swig \
-            unzip \
-            zlib1g-dev \
-            file \
-            wget \
-            subversion \
-            patch \
-            python3-pyelftools \
-            libelf-dev
-
-
-      # ============================================================
-      # 3. Clone OpenWrt
-      # ============================================================
-      - name: Clone OpenWrt
-        run: |
-          set -eu
-
-          git clone \
-            --branch v25.12.5 \
-            --depth 1 \
-            https://github.com/openwrt/openwrt.git
-
-          cd openwrt
-
-          echo "======================================"
-          echo "OpenWrt version"
-          echo "======================================"
-
-          git describe --tags --always
-
-
-      # ============================================================
-      # 4. Update feeds
-      # ============================================================
-      - name: Update feeds
-        working-directory: openwrt
-        run: |
-          set -eu
-
-          ./scripts/feeds update -a
-          ./scripts/feeds install -a
-
-
-      # ============================================================
-      # 5. Configure
-      # ============================================================
-      - name: Configure
-        working-directory: openwrt
-        run: |
-          set -eu
-
-          cat > .config <<'EOF'
-          #
-          # Target
-          #
-          CONFIG_TARGET_ramips=y
-          CONFIG_TARGET_ramips_mt7621=y
-          CONFIG_TARGET_ramips_mt7621_DEVICE_tplink_archer-ax23-v1=y
-
-          #
-          # LuCI
-          #
-          CONFIG_PACKAGE_luci=y
-          CONFIG_PACKAGE_luci-light=y
-
-          #
-          # Chinese
-          #
-          CONFIG_LUCI_LANG_zh-cn=y
-          CONFIG_PACKAGE_luci-i18n-base-zh-cn=y
-
-          #
-          # usteer
-          #
-          CONFIG_PACKAGE_usteer=y
-          CONFIG_PACKAGE_luci-app-usteer=y
-          CONFIG_PACKAGE_luci-i18n-usteer-zh-cn=y
-
-          #
-          # PPPoE
-          #
-          CONFIG_PACKAGE_ppp=y
-          CONFIG_PACKAGE_ppp-mod-pppoe=y
-
-          #
-          # Basic network
-          #
-          CONFIG_PACKAGE_dnsmasq=y
-          CONFIG_PACKAGE_firewall4=y
-          CONFIG_PACKAGE_netifd=y
-          CONFIG_PACKAGE_odhcp6c=y
-          CONFIG_PACKAGE_odhcpd-ipv6only=y
-
-          #
-          # SSH
-          #
-          CONFIG_PACKAGE_dropbear=y
-
-          #
-          # Wi-Fi
-          #
-          CONFIG_PACKAGE_wpad-basic-mbedtls=y
-          EOF
-
-          echo "======================================"
-          echo "Running make defconfig"
-          echo "======================================"
-
-          make defconfig
-
-          echo
-          echo "======================================"
-          echo "Selected target"
-          echo "======================================"
-
-          grep -E \
-            '^CONFIG_TARGET_(ramips|ramips_mt7621)' \
-            .config
-
-          echo
-          echo "======================================"
-          echo "Selected packages"
-          echo "======================================"
-
-          grep -E \
-            '^CONFIG_PACKAGE_(luci|usteer|ppp|wpad)' \
-            .config || true
-
-
-      # ============================================================
-      # 6. Build firmware-utils once
-      #
-      # This creates the host build environment and source tree.
-      # ============================================================
-      - name: Prepare firmware-utils
-        working-directory: openwrt
-        run: |
-          set -eu
-
-          echo "======================================"
-          echo "Preparing firmware-utils"
-          echo "======================================"
-
-          make tools/firmware-utils/compile V=s
-
-
-      # ============================================================
-      # 7. Patch AX23V
-      # ============================================================
-      - name: Patch AX23V
-        working-directory: openwrt
-        run: |
-          set -eu
-
-          chmod +x ../scripts/patch-ax23v.sh
-
-          echo "======================================"
-          echo "Running AX23V patch"
-          echo "======================================"
-
-          ../scripts/patch-ax23v.sh
-
-
-      # ============================================================
-      # 8. Verify AX23V source patch
-      #
-      # We must confirm the source really contains:
-      #
-      # {product_name:Archer AX23V,product_ver:1.0,special_id:4A500000}
-      #
-      # before rebuilding firmware-utils.
-      # ============================================================
-      - name: Verify AX23V source
-        working-directory: openwrt
-        run: |
-          set -eu
-
-          AX23_ENTRY='{product_name:Archer AX23,product_ver:1.0,special_id:52550000}'
-          AX23V_ENTRY='{product_name:Archer AX23V,product_ver:1.0,special_id:4A500000}'
-
-          echo "======================================"
-          echo "Searching tplink-safeloader.c"
-          echo "======================================"
-
-          mapfile -t SOURCES < <(
-            find build_dir/host \
-              -type f \
-              -path '*/src/tplink-safeloader.c' \
-              -print
-          )
-
-          if [ "${#SOURCES[@]}" -eq 0 ]; then
-            echo "ERROR: tplink-safeloader.c not found"
-            exit 1
-          fi
-
-          for SOURCE in "${SOURCES[@]}"; do
-            echo
-            echo "--------------------------------------"
-            echo "Source:"
-            echo "$SOURCE"
-            echo "--------------------------------------"
-
-            echo
-            echo "AX23 entries:"
-            grep -n -F 'Archer AX23' "$SOURCE" || true
-
-            echo
-            echo "Checking original AX23 entry..."
-
-            if ! grep -qF "$AX23_ENTRY" "$SOURCE"; then
-              echo "ERROR: original AX23 entry not found"
-              exit 1
-            fi
-
-            echo "OK: original AX23 entry found"
-
-            echo
-            echo "Checking AX23V entry..."
-
-            if ! grep -qF "$AX23V_ENTRY" "$SOURCE"; then
-              echo "ERROR: AX23V entry NOT found"
-              exit 1
-            fi
-
-            echo "OK: AX23V entry found"
-          done
-
-          echo
-          echo "======================================"
-          echo "AX23V source patch verified"
-          echo "======================================"
-
-
-      # ============================================================
-      # 9. Force clean firmware-utils
-      #
-      # The important point:
-      #
-      # firmware-utils was built BEFORE the patch.
-      #
-      # Therefore we remove the firmware-utils build directory
-      # and rebuild it from the patched source.
-      # ============================================================
-      - name: Clean firmware-utils
-        working-directory: openwrt
-        run: |
-          set -eu
-
-          echo "======================================"
-          echo "Locating firmware-utils build directory"
-          echo "======================================"
-
-          find build_dir/host \
-            -maxdepth 2 \
-            -type d \
-            -name 'firmware-utils-*' \
-            -print || true
-
-          echo
-          echo "======================================"
-          echo "Removing firmware-utils build directory"
-          echo "======================================"
-
-          FOUND=0
-
-          while IFS= read -r DIR; do
-            [ -z "$DIR" ] && continue
-
-            echo "Removing:"
-            echo "$DIR"
-
-            rm -rf "$DIR"
-
-            FOUND=1
-          done < <(
-            find build_dir/host \
-              -maxdepth 2 \
-              -type d \
-              -name 'firmware-utils-*' \
-              -print
-          )
-
-          if [ "$FOUND" -eq 0 ]; then
-            echo "WARNING: firmware-utils build directory not found"
-          fi
-
-
-      # ============================================================
-      # 10. Rebuild firmware-utils
-      #
-      # This MUST happen after the AX23V source patch.
-      # ============================================================
-      - name: Rebuild firmware-utils
-        working-directory: openwrt
-        run: |
-          set -eu
-
-          echo "======================================"
-          echo "Rebuilding firmware-utils"
-          echo "======================================"
-
-          make tools/firmware-utils/compile V=s
-
-
-      # ============================================================
-      # 11. Verify generated tplink-safeloader
-      #
-      # Confirm the compiled host tool contains AX23V.
-      # ============================================================
-      - name: Verify safeloader tool
-        working-directory: openwrt
-        run: |
-          set -eu
-
-          AX23V_ENTRY='{product_name:Archer AX23V,product_ver:1.0,special_id:4A500000}'
-
-          echo "======================================"
-          echo "Searching tplink-safeloader binary"
-          echo "======================================"
-
-          mapfile -t TOOLS < <(
-            find build_dir/host \
-              -type f \
-              -name 'tplink-safeloader' \
-              -print
-          )
-
-          if [ "${#TOOLS[@]}" -eq 0 ]; then
-            echo "ERROR: tplink-safeloader binary not found"
-            exit 1
-          fi
-
-          FOUND=0
-
-          for TOOL in "${TOOLS[@]}"; do
-            echo
-            echo "--------------------------------------"
-            echo "Tool:"
-            echo "$TOOL"
-            echo "--------------------------------------"
-
-            if strings "$TOOL" | grep -qF "$AX23V_ENTRY"; then
-              echo "OK: AX23V entry found in safeloader"
-              FOUND=1
-            else
-              echo "WARNING: AX23V entry NOT found"
-            fi
-          done
-
-          if [ "$FOUND" -ne 1 ]; then
-            echo
-            echo "ERROR: AX23V entry not found in compiled safeloader"
-            exit 1
-          fi
-
-          echo
-          echo "======================================"
-          echo "Safeloader tool verified"
-          echo "======================================"
-
-
-      # ============================================================
-      # 12. Build firmware
-      # ============================================================
-      - name: Build firmware
-        working-directory: openwrt
-        run: |
-          set -eu
-
-          echo "======================================"
-          echo "Building OpenWrt firmware"
-          echo "======================================"
-
-          make -j"$(nproc)" V=s
-
-
-      # ============================================================
-      # 13. Verify final firmware
-      # ============================================================
-      - name: Verify firmware
-        working-directory: openwrt
-        run: |
-          set -eu
-
-          FACTORY="bin/targets/ramips/mt7621/openwrt-ramips-mt7621-tplink_archer-ax23-v1-squashfs-factory.bin"
-
-          AX23V_ENTRY='{product_name:Archer AX23V,product_ver:1.0,special_id:4A500000}'
-
-          if [ ! -f "$FACTORY" ]; then
-            echo "ERROR: factory firmware not found:"
-            echo "$FACTORY"
-            exit 1
-          fi
-
-          echo "======================================"
-          echo "Firmware files"
-          echo "======================================"
-
-          ls -lh bin/targets/ramips/mt7621/*ax23*
-
-          echo
-          echo "======================================"
-          echo "File type"
-          echo "======================================"
-
-          file bin/targets/ramips/mt7621/*ax23*
-
-          echo
-          echo "======================================"
-          echo "AX23 / AX23V strings in factory"
-          echo "======================================"
-
-          strings "$FACTORY" | grep -i 'ax23' || true
-
-          echo
-          echo "======================================"
-          echo "Checking AX23V entry"
-          echo "======================================"
-
-          if strings "$FACTORY" | grep -qF "$AX23V_ENTRY"; then
-            echo
-            echo "======================================"
-            echo "SUCCESS"
-            echo "AX23V entry found in factory firmware."
-            echo "======================================"
-          else
-            echo
-            echo "======================================"
-            echo "FAILED"
-            echo "AX23V entry NOT found in factory firmware."
-            echo "======================================"
-
-            exit 1
-          fi
-
-
-      # ============================================================
-      # 14. Package firmware
-      # ============================================================
-      - name: Package firmware
-        working-directory: openwrt
-        run: |
-          set -eu
-
-          mkdir -p ../release
-
-          cp bin/targets/ramips/mt7621/*ax23* ../release/
-          cp bin/targets/ramips/mt7621/sha256sums ../release/
-
-          echo
-          echo "======================================"
-          echo "Release files"
-          echo "======================================"
-
-          ls -lh ../release
-
-
-      # ============================================================
-      # 15. Upload firmware artifact
-      # ============================================================
-      - name: Upload firmware artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: OpenWrt-25.12.5-AX23V
-          path: release/
-          if-no-files-found: error
-          retention-days: 30
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+HOST_DIR="build_dir/host"
+
+AX23_ENTRY='{product_name:Archer AX23,product_ver:1.0,special_id:52550000}'
+AX23V_ENTRY='{product_name:Archer AX23V,product_ver:1.0,special_id:4A500000}'
+
+echo "======================================"
+echo "Patch TP-Link AX23V safeloader"
+echo "======================================"
+
+echo
+echo "Searching tplink-safeloader.c..."
+
+mapfile -t SOURCES < <(
+    find "$HOST_DIR" \
+        -type f \
+        -path '*/src/tplink-safeloader.c' \
+        -print
+)
+
+if [ "${#SOURCES[@]}" -eq 0 ]; then
+    echo "ERROR: tplink-safeloader.c not found"
+    exit 1
+fi
+
+for SOURCE in "${SOURCES[@]}"; do
+
+    echo
+    echo "--------------------------------------"
+    echo "Source:"
+    echo "$SOURCE"
+    echo "--------------------------------------"
+
+    # ------------------------------------------------------------
+    # Already patched
+    # ------------------------------------------------------------
+    if grep -qF "$AX23V_ENTRY" "$SOURCE"; then
+        echo "AX23V entry already exists."
+
+        grep -n -F 'Archer AX23' "$SOURCE" || true
+
+        continue
+    fi
+
+    # ------------------------------------------------------------
+    # Make sure original entry exists exactly once
+    # ------------------------------------------------------------
+    COUNT="$(grep -F -c "$AX23_ENTRY" "$SOURCE" || true)"
+
+    if [ "$COUNT" -ne 1 ]; then
+        echo
+        echo "ERROR: unexpected AX23 entry count"
+        echo "Expected: 1"
+        echo "Found:    $COUNT"
+
+        echo
+        echo "Existing AX23 entries:"
+        grep -n -F 'Archer AX23' "$SOURCE" || true
+
+        exit 1
+    fi
+
+    # ------------------------------------------------------------
+    # Insert AX23V entry after the original AX23 entry.
+    #
+    # awk is used here instead of sed to avoid nested escaping
+    # problems between shell / sed / C string syntax.
+    # ------------------------------------------------------------
+    TMP="$(mktemp)"
+
+    awk \
+        -v old="$AX23_ENTRY" \
+        -v new="$AX23V_ENTRY" '
+        {
+            print
+
+            if (index($0, old) != 0) {
+                print "\t\t\"" new "\\n\""
+            }
+        }
+    ' "$SOURCE" > "$TMP"
+
+    mv "$TMP" "$SOURCE"
+
+    # ------------------------------------------------------------
+    # Verify immediately
+    # ------------------------------------------------------------
+    if ! grep -qF "$AX23V_ENTRY" "$SOURCE"; then
+        echo
+        echo "ERROR: AX23V entry insertion failed"
+        exit 1
+    fi
+
+    echo
+    echo "OK: AX23V entry inserted."
+
+    echo
+    echo "AX23 entries after patch:"
+    grep -n -F 'Archer AX23' "$SOURCE" || true
+
+done
+
+echo
+echo "======================================"
+echo "AX23V patch completed successfully"
+echo "======================================"
