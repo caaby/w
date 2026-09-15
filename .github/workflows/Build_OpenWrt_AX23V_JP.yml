@@ -1,3 +1,4 @@
+```yaml
 name: Build OpenWrt AX23V
 
 on:
@@ -72,7 +73,53 @@ jobs:
           git describe --tags --always
 
       # ============================================================
-      # 4. Update feeds
+      # 4. Use custom firmware-utils
+      #
+      # firmware-utils is built from our own fork/commit.
+      # ============================================================
+      - name: Use custom firmware-utils
+        working-directory: openwrt
+        run: |
+          set -eu
+
+          FIRMWARE_UTILS_URL="https://github.com/caaby/firmware-utils.git"
+          FIRMWARE_UTILS_COMMIT="8925f0cfa0c2bcdd141e38803f0292882c446e4c"
+
+          echo "======================================"
+          echo "Using custom firmware-utils"
+          echo "======================================"
+
+          echo "URL:"
+          echo "$FIRMWARE_UTILS_URL"
+
+          echo "Commit:"
+          echo "$FIRMWARE_UTILS_COMMIT"
+
+          sed -i \
+            "s#^PKG_SOURCE_URL=.*#PKG_SOURCE_URL:=$FIRMWARE_UTILS_URL#" \
+            tools/firmware-utils/Makefile
+
+          sed -i \
+            "s#^PKG_SOURCE_VERSION:=.*#PKG_SOURCE_VERSION:=$FIRMWARE_UTILS_COMMIT#" \
+            tools/firmware-utils/Makefile
+
+          # The upstream mirror hash belongs to the upstream
+          # firmware-utils source and is no longer valid.
+          sed -i \
+            '/^PKG_MIRROR_HASH:=/d' \
+            tools/firmware-utils/Makefile
+
+          echo
+          echo "======================================"
+          echo "firmware-utils configuration"
+          echo "======================================"
+
+          grep -E \
+            '^PKG_SOURCE_URL|^PKG_SOURCE_VERSION|^PKG_MIRROR_HASH' \
+            tools/firmware-utils/Makefile || true
+
+      # ============================================================
+      # 5. Update feeds
       # ============================================================
       - name: Update feeds
         working-directory: openwrt
@@ -83,7 +130,7 @@ jobs:
           ./scripts/feeds install -a
 
       # ============================================================
-      # 5. Configure
+      # 6. Configure
       # ============================================================
       - name: Configure
         working-directory: openwrt
@@ -164,25 +211,12 @@ jobs:
           grep -E '^CONFIG_PACKAGE_(luci|usteer|ppp|wpad)' .config || true
 
       # ============================================================
-      # 6. Prepare firmware-utils
+      # 7. Apply AX23 DTS changes
       #
-      # This creates the firmware-utils source tree.
+      # Keep this step only for your DTS modification.
+      # tplink-safeloader.c is already modified in firmware-utils.
       # ============================================================
-      - name: Prepare firmware-utils
-        working-directory: openwrt
-        run: |
-          set -eu
-
-          echo "======================================"
-          echo "Preparing firmware-utils"
-          echo "======================================"
-
-          make tools/firmware-utils/compile V=s
-
-      # ============================================================
-      # 7. Patch AX23V
-      # ============================================================
-      - name: Patch AX23V
+      - name: Patch AX23 DTS
         working-directory: openwrt
         run: |
           set -eu
@@ -190,15 +224,18 @@ jobs:
           chmod +x ../scripts/patch-ax23v.sh
 
           echo "======================================"
-          echo "Patching AX23V safeloader"
+          echo "Applying AX23 DTS changes"
           echo "======================================"
 
           ../scripts/patch-ax23v.sh
 
       # ============================================================
-      # 8. Verify source patch
+      # 8. Verify firmware-utils source
+      #
+      # Verify that the downloaded firmware-utils source contains
+      # the AX23V entry from our fixed commit.
       # ============================================================
-      - name: Verify AX23V source
+      - name: Verify firmware-utils source
         working-directory: openwrt
         run: |
           set -eu
@@ -206,7 +243,7 @@ jobs:
           AX23V_ENTRY='{product_name:Archer AX23V,product_ver:1.0,special_id:4A500000}'
 
           echo "======================================"
-          echo "Checking patched safeloader source"
+          echo "Checking firmware-utils source"
           echo "======================================"
 
           SOURCES="$(find build_dir/host \
@@ -236,78 +273,25 @@ jobs:
               exit 1
             fi
 
-            echo
-            echo "AX23 entries:"
-            grep -n -F 'Archer AX23' "$SOURCE" || true
-
           done <<EOF
           $SOURCES
           EOF
 
           if [ "$FOUND" -eq 0 ]; then
-            echo "ERROR: no patched safeloader source found"
+            echo "ERROR: no firmware-utils source found"
             exit 1
           fi
 
           echo
           echo "======================================"
-          echo "Source patch verified"
+          echo "firmware-utils source verified"
           echo "======================================"
 
       # ============================================================
-      # 9. Force firmware-utils rebuild
+      # 9. Build firmware
       #
-      # The first firmware-utils build happened before the patch.
-      # Remove the complete firmware-utils host build directory so
-      # the patched source is compiled again.
-      # ============================================================
-      - name: Clean firmware-utils
-        working-directory: openwrt
-        run: |
-          set -eu
-
-          echo "======================================"
-          echo "Cleaning firmware-utils build"
-          echo "======================================"
-
-          DIRS="$(find build_dir/host \
-            -maxdepth 1 \
-            -type d \
-            -name 'firmware-utils-*' \
-            -print)"
-
-          if [ -z "$DIRS" ]; then
-            echo "ERROR: firmware-utils build directory not found"
-            exit 1
-          fi
-
-          while IFS= read -r DIR; do
-            [ -z "$DIR" ] && continue
-
-            echo "Removing:"
-            echo "$DIR"
-
-            rm -rf "$DIR"
-          done <<EOF
-          $DIRS
-          EOF
-
-      # ============================================================
-      # 10. Rebuild firmware-utils
-      # ============================================================
-      - name: Rebuild firmware-utils
-        working-directory: openwrt
-        run: |
-          set -eu
-
-          echo "======================================"
-          echo "Rebuilding firmware-utils"
-          echo "======================================"
-
-          make tools/firmware-utils/compile V=s
-
-      # ============================================================
-      # 11. Build firmware
+      # firmware-utils will be built automatically as part of
+      # the normal OpenWrt build.
       # ============================================================
       - name: Build firmware
         working-directory: openwrt
@@ -321,7 +305,7 @@ jobs:
           make -j"$(nproc)" V=s
 
       # ============================================================
-      # 12. Verify final firmware
+      # 10. Verify final firmware
       # ============================================================
       - name: Verify firmware
         working-directory: openwrt
@@ -378,7 +362,7 @@ jobs:
           fi
 
       # ============================================================
-      # 13. Package firmware
+      # 11. Package firmware
       # ============================================================
       - name: Package firmware
         working-directory: openwrt
@@ -397,7 +381,7 @@ jobs:
           ls -lh ../release
 
       # ============================================================
-      # 14. Upload firmware
+      # 12. Upload firmware artifact
       # ============================================================
       - name: Upload firmware artifact
         uses: actions/upload-artifact@v4
@@ -406,3 +390,4 @@ jobs:
           path: release/
           if-no-files-found: error
           retention-days: 30
+```
