@@ -1,0 +1,165 @@
+name: Build OpenWrt AX23V v24.10.8
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
+            build-essential \
+            clang \
+            flex \
+            bison \
+            g++ \
+            gawk \
+            gcc-multilib \
+            g++-multilib \
+            gettext \
+            git \
+            libncurses5-dev \
+            libssl-dev \
+            python3-setuptools \
+            rsync \
+            swig \
+            unzip \
+            zlib1g-dev \
+            file \
+            wget \
+            subversion \
+            patch \
+            python3-pyelftools \
+            libelf-dev
+
+      - name: Clone OpenWrt
+        run: |
+          git clone \
+            --branch v24.10.8 \
+            --depth 1 \
+            https://github.com/openwrt/openwrt.git
+
+          cd openwrt
+          git describe --tags --always
+
+      - name: Update feeds
+        working-directory: openwrt
+        run: |
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+
+      - name: Configure
+        working-directory: openwrt
+        run: |
+          cat > .config <<'EOF'
+          CONFIG_TARGET_ramips=y
+          CONFIG_TARGET_ramips_mt7621=y
+          CONFIG_TARGET_ramips_mt7621_DEVICE_tplink_archer-ax23-v1=y
+
+          CONFIG_PACKAGE_usteer=y
+          CONFIG_PACKAGE_luci=y
+          CONFIG_PACKAGE_luci-i18n-base-zh-cn=y
+          CONFIG_PACKAGE_luci-i18n-usteer-zh-cn=y
+          CONFIG_PACKAGE_luci-app-usteer=y
+
+          CONFIG_DEFAULT_luci_language=zh_cn
+          EOF
+
+          make defconfig
+
+      - name: Build firmware-utils
+        working-directory: openwrt
+        run: |
+          make tools/firmware-utils/compile V=s
+
+      - name: Patch AX23V
+        working-directory: openwrt
+        run: |
+          chmod +x ../scripts/patch-ax23v.sh
+          ../scripts/patch-ax23v.sh
+
+      - name: Rebuild firmware-utils
+        working-directory: openwrt
+        run: |
+          make tools/firmware-utils/compile V=s
+
+      - name: Build firmware
+        working-directory: openwrt
+        run: |
+          make -j"$(nproc)" V=s
+
+      - name: Verify firmware
+        working-directory: openwrt
+        run: |
+          set -eu
+
+          FACTORY="bin/targets/ramips/mt7621/openwrt-ramips-mt7621-tplink_archer-ax23-v1-squashfs-factory.bin"
+
+          if [ ! -f "$FACTORY" ]; then
+            echo "ERROR: factory firmware not found"
+            exit 1
+          fi
+
+          echo "======================================"
+          echo "Firmware files"
+          echo "======================================"
+
+          ls -lh bin/targets/ramips/mt7621/*ax23*
+
+          echo
+          echo "======================================"
+          echo "File type"
+          echo "======================================"
+
+          file bin/targets/ramips/mt7621/*ax23*
+
+          echo
+          echo "======================================"
+          echo "AX23V safeloader check"
+          echo "======================================"
+
+          strings "$FACTORY" | grep -i 'ax23'
+
+          if strings "$FACTORY" | grep -qF \
+            '{product_name:Archer AX23V,product_ver:1.0,special_id:4A500000}'; then
+            echo
+            echo "OK: AX23V entry found."
+          else
+            echo
+            echo "ERROR: AX23V entry NOT found."
+            exit 1
+          fi
+
+      - name: Package firmware
+        working-directory: openwrt
+        run: |
+          mkdir -p ../release
+
+          cp bin/targets/ramips/mt7621/*ax23* ../release/
+          cp bin/targets/ramips/mt7621/sha256sums ../release/
+
+          echo
+          echo "======================================"
+          echo "Release files"
+          echo "======================================"
+
+          ls -lh ../release
+
+      - name: Upload firmware artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: OpenWrt-24.10.8-AX23V
+          path: release/
+          if-no-files-found: error
+          retention-days: 30
