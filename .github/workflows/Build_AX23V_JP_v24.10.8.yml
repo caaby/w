@@ -81,7 +81,7 @@ jobs:
       - name: Build firmware-utils
         working-directory: openwrt
         run: |
-          make tools/firmware-utils/compile V=s
+          make tools/firmware-utils/compile
 
       - name: Patch AX23V
         working-directory: openwrt
@@ -92,7 +92,7 @@ jobs:
       - name: Rebuild firmware-utils
         working-directory: openwrt
         run: |
-          make tools/firmware-utils/compile V=s
+          make tools/firmware-utils/compile
 
       - name: Build firmware
         working-directory: openwrt
