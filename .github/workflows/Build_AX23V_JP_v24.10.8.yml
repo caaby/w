@@ -11,11 +11,19 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
+      # ============================================================
+      # 1. Checkout
+      # ============================================================
       - name: Checkout
         uses: actions/checkout@v5
 
+      # ============================================================
+      # 2. Install dependencies
+      # ============================================================
       - name: Install dependencies
         run: |
+          set -eu
+
           sudo apt-get update
 
           sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
@@ -43,84 +51,261 @@ jobs:
             python3-pyelftools \
             libelf-dev
 
+      # ============================================================
+      # 3. Clone OpenWrt
+      # ============================================================
       - name: Clone OpenWrt
         run: |
+          set -eu
+
           git clone \
             --branch v24.10.8 \
             --depth 1 \
             https://github.com/openwrt/openwrt.git
 
           cd openwrt
+
+          echo "======================================"
+          echo "OpenWrt version"
+          echo "======================================"
+
           git describe --tags --always
 
+      # ============================================================
+      # 4. Use custom firmware-utils
+      #
+      # firmware-utils is built from our own fork/commit.
+      # ============================================================
+      - name: Use custom firmware-utils
+        working-directory: openwrt
+        run: |
+          set -eu
+
+          FIRMWARE_UTILS_URL="https://github.com/caaby/firmware-utils.git"
+          FIRMWARE_UTILS_COMMIT="8925f0cfa0c2bcdd141e38803f0292882c446e4c"
+
+          echo "======================================"
+          echo "Using custom firmware-utils"
+          echo "======================================"
+
+          echo "URL:"
+          echo "$FIRMWARE_UTILS_URL"
+
+          echo "Commit:"
+          echo "$FIRMWARE_UTILS_COMMIT"
+
+          sed -i \
+            "s#^PKG_SOURCE_URL=.*#PKG_SOURCE_URL:=$FIRMWARE_UTILS_URL#" \
+            tools/firmware-utils/Makefile
+
+          sed -i \
+            "s#^PKG_SOURCE_VERSION:=.*#PKG_SOURCE_VERSION:=$FIRMWARE_UTILS_COMMIT#" \
+            tools/firmware-utils/Makefile
+
+          # The upstream mirror hash belongs to the upstream
+          # firmware-utils source and is no longer valid.
+          sed -i \
+            '/^PKG_MIRROR_HASH:=/d' \
+            tools/firmware-utils/Makefile
+
+          echo
+          echo "======================================"
+          echo "firmware-utils configuration"
+          echo "======================================"
+
+          grep -E \
+            '^PKG_SOURCE_URL|^PKG_SOURCE_VERSION|^PKG_MIRROR_HASH' \
+            tools/firmware-utils/Makefile || true
+
+      # ============================================================
+      # 5. Update feeds
+      # ============================================================
       - name: Update feeds
         working-directory: openwrt
         run: |
+          set -eu
+
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
+      # ============================================================
+      # 6. Configure
+      # ============================================================
       - name: Configure
         working-directory: openwrt
         run: |
+          set -eu
+
           cat > .config <<'EOF'
+          #
+          # Target
+          #
           CONFIG_TARGET_ramips=y
           CONFIG_TARGET_ramips_mt7621=y
           CONFIG_TARGET_ramips_mt7621_DEVICE_tplink_archer-ax23-v1=y
-          
+
+          #
           # LuCI
+          #
           CONFIG_PACKAGE_luci=y
           CONFIG_PACKAGE_luci-light=y
-          
-          # 中文
+
+          #
+          # Chinese
+          #
           CONFIG_LUCI_LANG_zh-cn=y
           CONFIG_PACKAGE_luci-i18n-base-zh-cn=y
-          
-          # usteer 漫游
+
+          #
+          # usteer
+          #
           CONFIG_PACKAGE_usteer=y
           CONFIG_PACKAGE_luci-app-usteer=y
           CONFIG_PACKAGE_luci-i18n-usteer-zh-cn=y
-          
-          # PPPoE 拨号
+
+          #
+          # PPPoE
+          #
           CONFIG_PACKAGE_ppp=y
           CONFIG_PACKAGE_ppp-mod-pppoe=y
-          
-          # 基础网络
+
+          #
+          # Basic network
+          #
           CONFIG_PACKAGE_dnsmasq=y
           CONFIG_PACKAGE_firewall4=y
           CONFIG_PACKAGE_netifd=y
           CONFIG_PACKAGE_odhcp6c=y
           CONFIG_PACKAGE_odhcpd-ipv6only=y
-          
+
+          #
           # SSH
+          #
           CONFIG_PACKAGE_dropbear=y
-          
+
+          #
           # Wi-Fi
+          #
           CONFIG_PACKAGE_wpad-basic-mbedtls=y
           EOF
 
+          echo "======================================"
+          echo "Running make defconfig"
+          echo "======================================"
+
           make defconfig
 
-      - name: Build firmware-utils
-        working-directory: openwrt
-        run: |
-          make tools/firmware-utils/compile
+          echo
+          echo "======================================"
+          echo "Target"
+          echo "======================================"
 
-      - name: Patch AX23V
+          grep -E '^CONFIG_TARGET_' .config | grep -E 'ramips|mt7621|ax23'
+
+          echo
+          echo "======================================"
+          echo "Packages"
+          echo "======================================"
+
+          grep -E '^CONFIG_PACKAGE_(luci|usteer|ppp|wpad)' .config || true
+
+      # ============================================================
+      # 7. Apply AX23 DTS changes
+      #
+      # Keep this step only for your DTS modification.
+      # tplink-safeloader.c is already modified in firmware-utils.
+      # ============================================================
+      - name: Patch AX23 DTS
         working-directory: openwrt
         run: |
+          set -eu
+
           chmod +x ../scripts/patch-ax23v.sh
+
+          echo "======================================"
+          echo "Applying AX23 DTS changes"
+          echo "======================================"
+
           ../scripts/patch-ax23v.sh
 
-      - name: Rebuild firmware-utils
+      # ============================================================
+      # 8. Verify firmware-utils source
+      #
+      # Verify that the downloaded firmware-utils source contains
+      # the AX23V entry from our fixed commit.
+      # ============================================================
+      - name: Verify firmware-utils source
         working-directory: openwrt
         run: |
-          make tools/firmware-utils/compile
+          set -eu
 
+          AX23V_ENTRY='{product_name:Archer AX23V,product_ver:1.0,special_id:4A500000}'
+
+          echo "======================================"
+          echo "Checking firmware-utils source"
+          echo "======================================"
+
+          SOURCES="$(find build_dir/host \
+            -type f \
+            -path '*/src/tplink-safeloader.c' \
+            -print)"
+
+          if [ -z "$SOURCES" ]; then
+            echo "ERROR: tplink-safeloader.c not found"
+            exit 1
+          fi
+
+          FOUND=0
+
+          while IFS= read -r SOURCE; do
+            [ -z "$SOURCE" ] && continue
+
+            echo
+            echo "Source:"
+            echo "$SOURCE"
+
+            if grep -qF "$AX23V_ENTRY" "$SOURCE"; then
+              echo "OK: AX23V entry found"
+              FOUND=$((FOUND + 1))
+            else
+              echo "ERROR: AX23V entry NOT found"
+              exit 1
+            fi
+
+          done <<EOF
+          $SOURCES
+          EOF
+
+          if [ "$FOUND" -eq 0 ]; then
+            echo "ERROR: no firmware-utils source found"
+            exit 1
+          fi
+
+          echo
+          echo "======================================"
+          echo "firmware-utils source verified"
+          echo "======================================"
+
+      # ============================================================
+      # 9. Build firmware
+      #
+      # firmware-utils will be built automatically as part of
+      # the normal OpenWrt build.
+      # ============================================================
       - name: Build firmware
         working-directory: openwrt
         run: |
-          make -j"$(nproc)"
+          set -eu
 
+          echo "======================================"
+          echo "Building OpenWrt firmware"
+          echo "======================================"
+
+          make -j"$(nproc)" V=s
+
+      # ============================================================
+      # 10. Verify final firmware
+      # ============================================================
       - name: Verify firmware
         working-directory: openwrt
         run: |
@@ -128,56 +313,75 @@ jobs:
 
           FACTORY="bin/targets/ramips/mt7621/openwrt-ramips-mt7621-tplink_archer-ax23-v1-squashfs-factory.bin"
 
+          AX23V_ENTRY='{product_name:Archer AX23V,product_ver:1.0,special_id:4A500000}'
+
+          echo "======================================"
+          echo "Checking firmware"
+          echo "======================================"
+
           if [ ! -f "$FACTORY" ]; then
-            echo "ERROR: factory firmware not found"
+            echo "ERROR: factory firmware not found:"
+            echo "$FACTORY"
             exit 1
           fi
 
-          echo "======================================"
-          echo "Firmware files"
-          echo "======================================"
-
+          echo
+          echo "Firmware files:"
           ls -lh bin/targets/ramips/mt7621/*ax23*
 
           echo
-          echo "======================================"
-          echo "File type"
-          echo "======================================"
-
+          echo "File type:"
           file bin/targets/ramips/mt7621/*ax23*
 
           echo
           echo "======================================"
-          echo "AX23V safeloader check"
+          echo "AX23 / AX23V strings in factory"
           echo "======================================"
 
-          strings "$FACTORY" | grep -i 'ax23'
+          strings "$FACTORY" | grep -i 'Archer AX23' || true
 
-          if strings "$FACTORY" | grep -qF \
-            '{product_name:Archer AX23V,product_ver:1.0,special_id:4A500000}'; then
+          echo
+          echo "======================================"
+          echo "Checking AX23V entry"
+          echo "======================================"
+
+          if strings "$FACTORY" | grep -qF "$AX23V_ENTRY"; then
             echo
-            echo "OK: AX23V entry found."
+            echo "======================================"
+            echo "SUCCESS"
+            echo "AX23V entry found in factory firmware."
+            echo "======================================"
           else
             echo
-            echo "ERROR: AX23V entry NOT found."
+            echo "======================================"
+            echo "ERROR"
+            echo "AX23V entry NOT found in factory firmware."
+            echo "======================================"
             exit 1
           fi
 
+      # ============================================================
+      # 11. Package firmware
+      # ============================================================
       - name: Package firmware
         working-directory: openwrt
         run: |
+          set -eu
+
           mkdir -p ../release
 
           cp bin/targets/ramips/mt7621/*ax23* ../release/
           cp bin/targets/ramips/mt7621/sha256sums ../release/
 
-          echo
           echo "======================================"
           echo "Release files"
           echo "======================================"
 
           ls -lh ../release
 
+      # ============================================================
+      # 12. Upload firmware artifact
+      # ============================================================
       - name: Upload firmware artifact
         uses: actions/upload-artifact@v4
         with:
