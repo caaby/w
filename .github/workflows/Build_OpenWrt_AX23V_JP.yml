@@ -72,8 +72,7 @@ jobs:
           CONFIG_PACKAGE_luci-i18n-base-zh-cn=y
           CONFIG_PACKAGE_luci-i18n-usteer-zh-cn=y
           CONFIG_PACKAGE_luci-app-usteer=y
-
-          CONFIG_DEFAULT_luci_language=zh_cn
+          CONFIG_LUCI_LANG_zh-cn=y
           EOF
 
           make defconfig
