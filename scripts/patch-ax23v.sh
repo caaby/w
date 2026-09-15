@@ -50,7 +50,7 @@ fi
 
 # 从当前工作目录查找固件工具源码。
 host_dir="build_dir/host"
-old_entry='{product_name:Archer AX23,product_ver:1.0,special_id:4A500000}'
+old_entry='{product_name:Archer AX23,product_ver:1.0,special_id:52550000}'
 new_entry='{product_name:Archer AX23V,product_ver:1.0,special_id:4A500000}'
 
 if [ ! -d "$host_dir" ]; then
@@ -77,9 +77,10 @@ printf '%s\n' "$sources" | while IFS= read -r source; do
 
         # 保留原行缩进，并在它下面添加 AX23V 条目。
         sed -i '
-            /{product_name:Archer AX23,product_ver:1\.0,special_id:4A500000}/ {
+            /{product_name:Archer AX23,product_ver:1\.0,special_id:52550000}/ {
                 p
                 s/Archer AX23,/Archer AX23V,/
+                s/special_id:52550000/special_id:4A500000/
             }
         ' "$source"
 
