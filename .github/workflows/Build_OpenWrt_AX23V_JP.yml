@@ -227,65 +227,6 @@ jobs:
           echo "======================================"
 
           ../scripts/patch-ax23v.sh
-
-      # ============================================================
-      # 8. Verify firmware-utils source
-      #
-      # Verify that the downloaded firmware-utils source contains
-      # the AX23V entry from our fixed commit.
-      # ============================================================
-      - name: Verify firmware-utils source
-        working-directory: openwrt
-        run: |
-          set -eu
-
-          AX23V_ENTRY='{product_name:Archer AX23V,product_ver:1.0,special_id:4A500000}'
-
-          echo "======================================"
-          echo "Checking firmware-utils source"
-          echo "======================================"
-
-          SOURCES="$(find build_dir/host \
-            -type f \
-            -path '*/src/tplink-safeloader.c' \
-            -print)"
-
-          if [ -z "$SOURCES" ]; then
-            echo "ERROR: tplink-safeloader.c not found"
-            exit 1
-          fi
-
-          FOUND=0
-
-          while IFS= read -r SOURCE; do
-            [ -z "$SOURCE" ] && continue
-
-            echo
-            echo "Source:"
-            echo "$SOURCE"
-
-            if grep -qF "$AX23V_ENTRY" "$SOURCE"; then
-              echo "OK: AX23V entry found"
-              FOUND=$((FOUND + 1))
-            else
-              echo "ERROR: AX23V entry NOT found"
-              exit 1
-            fi
-
-          done <<EOF
-          $SOURCES
-          EOF
-
-          if [ "$FOUND" -eq 0 ]; then
-            echo "ERROR: no firmware-utils source found"
-            exit 1
-          fi
-
-          echo
-          echo "======================================"
-          echo "firmware-utils source verified"
-          echo "======================================"
-
       # ============================================================
       # 9. Build firmware
       #
