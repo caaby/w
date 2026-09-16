@@ -1,0 +1,157 @@
+name: Build OpenWrt XDR6088 v25.12.5
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    steps:
+      # ============================================================
+      # 1. Checkout
+      # ============================================================
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      # ============================================================
+      # 2. Install dependencies
+      # ============================================================
+      - name: Install dependencies
+        run: |
+          set -eu
+
+          sudo apt-get update
+
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
+            build-essential \
+            clang \
+            flex \
+            bison \
+            g++ \
+            gawk \
+            gcc-multilib \
+            g++-multilib \
+            gettext \
+            git \
+            libncurses5-dev \
+            libssl-dev \
+            python3-setuptools \
+            rsync \
+            swig \
+            unzip \
+            zlib1g-dev \
+            file \
+            wget \
+            subversion \
+            patch \
+            python3-pyelftools \
+            libelf-dev
+
+      # ============================================================
+      # 3. Clone OpenWrt
+      # ============================================================
+      - name: Clone OpenWrt
+        run: |
+          set -eu
+
+          git clone \
+            --branch v25.12.5 \
+            --depth 1 \
+            https://github.com/openwrt/openwrt.git
+
+          cd openwrt
+
+          echo "======================================"
+          echo "OpenWrt version"
+          echo "======================================"
+
+          git describe --tags --always
+
+      # ============================================================
+      # 4. Update feeds
+      # ============================================================
+      - name: Update feeds
+        working-directory: openwrt
+        run: |
+          set -eu
+
+          cat >> feeds.conf.default <<'EOF'
+          src-git passwall_packages https://github.com/Openwrt-Passwall/openwrt-passwall-packages.git;main
+          src-git passwall_luci https://github.com/Openwrt-Passwall/openwrt-passwall.git;main
+          EOF
+
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+
+      # ============================================================
+      # 5. Configure
+      # ============================================================
+      - name: Configure
+        working-directory: openwrt
+        run: |
+          set -eu
+
+          cp ../xdr6088.config .config
+
+          echo "======================================"
+          echo "OpenWrt configuration"
+          echo "======================================"
+
+          grep -E \
+            'CONFIG_TARGET_|CONFIG_PACKAGE_(luci-app-passwall|luci-app-smartdns|luci-app-ddns|ppp|ppp-mod-pppoe)' \
+            .config || true
+
+      # ============================================================
+      # 6. Build firmware
+      # ============================================================
+      - name: Build firmware
+        working-directory: openwrt
+        run: |
+          set -eu
+
+          echo "======================================"
+          echo "Building OpenWrt firmware"
+          echo "======================================"
+
+          make -j"$(nproc)" V=s
+
+      # ============================================================
+      # 7. List build output
+      # ============================================================
+      - name: List firmware
+        working-directory: openwrt
+        run: |
+          set -eu
+
+          echo "======================================"
+          echo "Build output"
+          echo "======================================"
+
+          find bin/targets -type f | sort
+
+      # ============================================================
+      # 8. Upload firmware
+      # ============================================================
+      - name: Upload firmware
+        uses: actions/upload-artifact@v4
+        with:
+          name: openwrt-xdr6088
+          path: |
+            openwrt/bin/targets/**
+          if-no-files-found: error
+          retention-days: 30
+
+      # ============================================================
+      # 9. Upload .config
+      # ============================================================
+      - name: Upload build config
+        uses: actions/upload-artifact@v4
+        with:
+          name: openwrt-xdr6088-config
+          path: openwrt/.config
+          if-no-files-found: error
+          retention-days: 30
