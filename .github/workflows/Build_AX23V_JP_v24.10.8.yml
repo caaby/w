@@ -325,7 +325,7 @@ jobs:
       # 12. Upload firmware artifact
       # ============================================================
       - name: Upload firmware artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: OpenWrt-24.10.8-AX23V
           path: release/
