@@ -1,0 +1,102 @@
+name: xdr6088
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+
+      - name: Initialization environment
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo -E apt-mark hold grub-efi-amd64-signed
+          sudo -E apt update
+          sudo -E apt -y full-upgrade
+          sudo -E apt-get -y purge azure-cli* docker* ghc* llvm* firefox* google* dotnet* aspnetcore* powershell* mysql* php* mongodb* snap*
+          sudo -E apt -y install build-essential git libncurses-dev libpython3-dev python3-setuptools python3-pyelftools swig
+          sudo -E systemctl daemon-reload
+          sudo -E apt -y autoremove --purge
+          sudo -E apt autoclean
+          sudo -E apt clean
+          sudo -E rm -rf /usr/share/dotnet /etc/mysql /etc/php /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL /usr/local/.ghcup /usr/share/swift /usr/local/share/powershell /usr/local/lib/heroku
+          sudo -E timedatectl set-timezone "Asia/Shanghai"
+
+      - name: Check disk space
+        run: df -h
+
+      - name: Download and Extract Source Code
+        run: |
+          rm -rf .git/ .github/ *
+          git clone --depth=1 --branch=openwrt-21.02 https://github.com/hanwckf/immortalwrt-mt798x.git ./
+
+      - name: Update feeds
+        run: |
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+
+      - name: Generate configuration file
+        run: |
+          rm -f ./.config*
+          cp -f defconfig/mt7986-ax6000.config .config
+
+          sed -i \
+           -e '/^CONFIG_TARGET_DEVICE_mediatek_mt7986_DEVICE_/d' \
+           -e '/^CONFIG_TARGET_DEVICE_PACKAGES_mediatek_mt7986_DEVICE_/d' \
+           .config
+
+          sed -i '/^CONFIG_TARGET_MULTI_PROFILE=/d' .config
+
+          cat >> .config <<'EOF'
+           CONFIG_TARGET_DEVICE_mediatek_mt7986_DEVICE_tplink_tl-xdr6088=y
+           CONFIG_TARGET_DEVICE_PACKAGES_mediatek_mt7986_DEVICE_tplink_tl-xdr6088=""
+           EOF
+
+          #
+          # ===============================================================
+          # 
+
+          sed -i 's/^[ \t]*//g' ./.config
+          make defconfig
+
+      - name: Download packages
+        run: make download -j16
+
+      - name: Build firmware
+        run: |
+          make -j$(nproc) || make -j1 V=s
+
+      - name: Prepare artifact
+        run: |
+          mkdir -p ./artifact/package
+          mkdir -p ./artifact/buildinfo
+          rm -rf $(find ./bin/targets/ -type d -name "packages")
+          cp -rf $(find ./bin/packages/ -type f \( -name "*.ipk" -o -name "*.apk" \)) ./artifact/package/
+          cp -rf $(find ./bin/targets/ -type f -name "*.buildinfo" -o -name "*.manifest") ./artifact/buildinfo/
+
+      - name: Upload buildinfo
+        uses: actions/upload-artifact@master
+        with:
+          name: immortalwrt_buildinfo
+          path: ./artifact/buildinfo/
+
+      - name: Upload package
+        uses: actions/upload-artifact@master
+        with:
+          name: immortalwrt_package
+          path: ./artifact/package/
+
+      - name: Upload firmware
+        uses: actions/upload-artifact@master
+        with:
+          name: immortalwrt_firmware
+          path: ./bin/targets/
+
