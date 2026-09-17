@@ -35,7 +35,7 @@ jobs:
 
       - name: Download and Extract Source Code
         run: |
-          rm -rf .git/ .github/ *
+          rm -rf -- ./* ./.??*
           git clone --depth=1 --branch=openwrt-21.02 https://github.com/hanwckf/immortalwrt-mt798x.git ./
 
       - name: Update feeds
