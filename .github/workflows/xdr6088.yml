@@ -58,9 +58,9 @@ jobs:
           sed -i '/^CONFIG_TARGET_MULTI_PROFILE=/d' .config
 
           cat >> .config <<'EOF'
-           CONFIG_TARGET_DEVICE_mediatek_mt7986_DEVICE_tplink_tl-xdr6088=y
-           CONFIG_TARGET_DEVICE_PACKAGES_mediatek_mt7986_DEVICE_tplink_tl-xdr6088=""
-           EOF
+CONFIG_TARGET_DEVICE_mediatek_mt7986_DEVICE_tplink_tl-xdr6088=y
+CONFIG_TARGET_DEVICE_PACKAGES_mediatek_mt7986_DEVICE_tplink_tl-xdr6088=""
+EOF
 
           #
           # ===============================================================
