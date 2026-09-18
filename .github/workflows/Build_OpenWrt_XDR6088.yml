@@ -1,4 +1,4 @@
-name: Build OpenWrt XDR6088 v25.12.5
+name: Build OpenWrt XDR6088 v23.05.06
 
 on:
   workflow_dispatch:
@@ -41,7 +41,7 @@ jobs:
           set -eu
 
           git clone \
-            --branch v25.12.5 \
+            --branch v23.05.06 \
             --depth 1 \
             https://github.com/openwrt/openwrt.git
 
