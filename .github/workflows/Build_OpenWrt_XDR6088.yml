@@ -58,12 +58,6 @@ jobs:
       - name: Update feeds
         working-directory: openwrt
         run: |
-          set -eu
-
-          cat >> feeds.conf.default <<'EOF'
-          src-git singbox_ui https://github.com/ang3el7z/luci-app-singbox-ui.git;main
-          EOF
-
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
