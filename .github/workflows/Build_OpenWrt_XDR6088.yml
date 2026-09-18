@@ -1,4 +1,4 @@
-name: Build OpenWrt XDR6088 v23.05.06
+name: Build OpenWrt XDR6088 v23.05.6
 
 on:
   workflow_dispatch:
@@ -40,7 +40,7 @@ jobs:
           set -eu
 
           git clone \
-            --branch v23.05.06 \
+            --branch v23.05.6 \
             --depth 1 \
             https://github.com/openwrt/openwrt.git
 
@@ -61,8 +61,7 @@ jobs:
           set -eu
 
           cat >> feeds.conf.default <<'EOF'
-          src-git passwall_packages https://github.com/Openwrt-Passwall/openwrt-passwall-packages.git;main
-          src-git passwall_luci https://github.com/Openwrt-Passwall/openwrt-passwall.git;main
+          src-git singbox_ui https://github.com/ang3el7z/luci-app-singbox-ui.git;main
           EOF
 
           ./scripts/feeds update -a
