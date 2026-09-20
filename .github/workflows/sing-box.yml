@@ -1,0 +1,93 @@
+```yaml
+name: Build sing-box VLESS-Trojan
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "sing-box version"
+        required: true
+        default: "v1.12.25"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout sing-box
+        uses: actions/checkout@v5
+        with:
+          repository: SagerNet/sing-box
+          ref: ${{ inputs.version }}
+          fetch-depth: 1
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: true
+
+      - name: Prepare build tags
+        shell: bash
+        run: |
+          TAGS="$(cat release/DEFAULT_BUILD_TAGS_OTHERS)"
+
+          # 不需要 Clash API
+          TAGS="$(echo "$TAGS" | sed \
+            -e 's/with_clash_api,//g' \
+            -e 's/,with_clash_api//g')"
+
+          # 不需要 V2Ray API
+          TAGS="$(echo "$TAGS" | sed \
+            -e 's/with_v2ray_api,//g' \
+            -e 's/,with_v2ray_api//g')"
+
+          # 不需要 Cloudflared
+          TAGS="$(echo "$TAGS" | sed \
+            -e 's/with_cloudflared,//g' \
+            -e 's/,with_cloudflared//g')"
+
+          echo "BUILD_TAGS=$TAGS" >> "$GITHUB_ENV"
+
+          echo "========== Build tags =========="
+          echo "$TAGS"
+
+      - name: Build ARM64
+        env:
+          CGO_ENABLED: 0
+          GOOS: linux
+          GOARCH: arm64
+        run: |
+          mkdir -p dist
+
+          go build \
+            -trimpath \
+            -tags "$BUILD_TAGS" \
+            -ldflags "-s -w -buildid=" \
+            -o dist/sing-box \
+            ./cmd/sing-box
+
+      - name: Check
+        run: |
+          file dist/sing-box
+          ls -lh dist/sing-box
+          du -h dist/sing-box
+          sha256sum dist/sing-box
+
+      - name: Package
+        run: |
+          tar -C dist \
+            -czf "sing-box-${{ inputs.version }}-linux-arm64-vless-trojan.tar.gz" \
+            sing-box
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: sing-box-${{ inputs.version }}-linux-arm64-vless-trojan
+          path: |
+            dist/sing-box
+            dist/*.tar.gz
+```
