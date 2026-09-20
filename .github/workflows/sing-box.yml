@@ -1,3 +1,4 @@
+```yaml
 name: Build sing-box VLESS-Trojan
 
 on:
@@ -15,7 +16,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: SagerNet/sing-box
-          ref: ${{ inputs.version }}
+          ref: v1.12.25
           fetch-depth: 1
 
       - name: Setup Go
@@ -29,17 +30,17 @@ jobs:
         run: |
           TAGS="$(cat release/DEFAULT_BUILD_TAGS_OTHERS)"
 
-          # 不需要 Clash API
+          # 删除 Clash API
           TAGS="$(echo "$TAGS" | sed \
             -e 's/with_clash_api,//g' \
             -e 's/,with_clash_api//g')"
 
-          # 不需要 V2Ray API
+          # 删除 V2Ray API
           TAGS="$(echo "$TAGS" | sed \
             -e 's/with_v2ray_api,//g' \
             -e 's/,with_v2ray_api//g')"
 
-          # 不需要 Cloudflared
+          # 删除 Cloudflared
           TAGS="$(echo "$TAGS" | sed \
             -e 's/with_cloudflared,//g' \
             -e 's/,with_cloudflared//g')"
@@ -74,14 +75,14 @@ jobs:
       - name: Package
         run: |
           tar -C dist \
-            -czf "sing-box-${{ inputs.version }}-linux-arm64-vless-trojan.tar.gz" \
+            -czf sing-box-v1.12.25-linux-arm64-vless-trojan.tar.gz \
             sing-box
 
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: sing-box-${{ inputs.version }}-linux-arm64-vless-trojan
+          name: sing-box-v1.12.25-linux-arm64-vless-trojan
           path: |
             dist/sing-box
-            dist/*.tar.gz
+            dist/sing-box-v1.12.25-linux-arm64-vless-trojan.tar.gz
 ```
