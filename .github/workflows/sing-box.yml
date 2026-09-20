@@ -2,11 +2,6 @@ name: Build sing-box VLESS-Trojan
 
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: "sing-box version"
-        required: true
-        default: "v1.12.25"
 
 permissions:
   contents: read
