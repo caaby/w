@@ -1,4 +1,3 @@
-```yaml
 name: Build sing-box VLESS-Trojan
 
 on:
@@ -85,4 +84,3 @@ jobs:
           path: |
             dist/sing-box
             dist/sing-box-v1.12.25-linux-arm64-vless-trojan.tar.gz
-```
