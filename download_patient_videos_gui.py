@@ -9,6 +9,7 @@ import queue
 import re
 import tempfile
 import threading
+import time
 import tkinter as tk
 from tkinter import filedialog, ttk
 from urllib.parse import urljoin
@@ -25,12 +26,11 @@ VIDEO_ZIDS = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', 
 DEFAULT_REQUEST_TIMEOUT = 30
 DEFAULT_DOWNLOAD_TIMEOUT = 300
 INPUT_COLUMN_ALIASES = {
-    'identifier_1': ['病历号'],
+    'patient_given_names': ['女方姓名'],
+    'patient_name': ['男方姓名'],
     'no': ['no'],
 }
 OPTIONAL_INPUT_COLUMN_ALIASES = {
-    'patient_given_names': ['女方姓名'],
-    'patient_name': ['男方姓名'],
     'session_uuid': ['session_uuid'],
 }
 
@@ -43,7 +43,10 @@ class CandlePublicClient:
         self.base_url = base_url.rstrip('/')
         self.request_timeout = request_timeout
         self.download_timeout = download_timeout
+        self.username = username
+        self.password = password
         self.s = requests.Session()
+        self._token_time = time.monotonic()
         self.s.headers.update(self._get_auth_header(username, password))
 
     def _get_auth_header(self, username, password):
@@ -64,8 +67,17 @@ class CandlePublicClient:
             raise RuntimeError('登录失败，请检查用户名和密码。')
         return {'Authorization': 'Bearer {}'.format(token)}
 
+    def _refresh_auth_if_needed(self):
+        now = time.monotonic()
+        if now - self._token_time >= 360:
+            self.s.headers.update(self._get_auth_header(self.username, self.password))
+            self._token_time = now
+
     def get_dishrecords(self):
         return self._get_public_json('dishrecords')
+
+    def get_dishrecord(self, dish_uuid):
+        return self._get_public_json('dishrecords', {'dish_uuid': dish_uuid})
 
     def get_sessionrecords(self, dish_uuid):
         return self._get_public_json('sessionrecords', {'dish_uuid': dish_uuid})
@@ -74,6 +86,7 @@ class CandlePublicClient:
         return self._get_public_json('sessionrecords', {'session_uuid': session_uuid})
 
     def _get_public_json(self, endpoint, params=None):
+        self._refresh_auth_if_needed()
         url = urljoin(self.base_url, PUBLIC_API_PREFIX + '/' + endpoint)
         try:
             response = self.s.get(url, params=params, verify=False, timeout=self.request_timeout)
@@ -143,9 +156,8 @@ def resolve_input_columns(fieldnames):
 
 def canonicalize_target(row, columns, row_number=None):
     return {
-        'identifier_1': row.get(columns['identifier_1'], ''),
-        'patient_given_names': row.get(columns['patient_given_names'], '') if 'patient_given_names' in columns else '',
-        'patient_name': row.get(columns['patient_name'], '') if 'patient_name' in columns else '',
+        'patient_given_names': row.get(columns['patient_given_names'], ''),
+        'patient_name': row.get(columns['patient_name'], ''),
         'no': row.get(columns['no'], ''),
         'session_uuid': row.get(columns['session_uuid'], '') if 'session_uuid' in columns else '',
         '_row_number': row_number,
@@ -231,7 +243,8 @@ def validate_targets(targets):
     errors = []
     for index, target in enumerate(targets, start=2):
         row_number = target.get('_row_number') or index
-        identifier_1 = (target.get('identifier_1') or '').strip()
+        patient_given_names = (target.get('patient_given_names') or '').strip()
+        patient_name = (target.get('patient_name') or '').strip()
         if not (target.get('no') or '').strip():
             errors.append('第 {} 行缺少 no'.format(row_number))
             continue
@@ -240,8 +253,8 @@ def validate_targets(targets):
         except (TypeError, ValueError):
             errors.append('第 {} 行 no 不合法: {}'.format(row_number, display_value(target.get('no'))))
             continue
-        if not identifier_1:
-            errors.append('第 {} 行缺少 病历号'.format(row_number))
+        if not patient_given_names and not patient_name:
+            errors.append('第 {} 行 女方姓名 和 男方姓名 至少要填写一个'.format(row_number))
         if not 1 <= well_no <= 16:
             errors.append('第 {} 行 no 不合法: {}'.format(row_number, display_value(target.get('no'))))
 
@@ -278,43 +291,30 @@ def check_output_dir_writable(output_dir):
 
 
 def index_dishrecords(dishrecords):
-    by_identifier = {}
+    by_name = {}
     for dish in dishrecords:
-        key = normalize(dish.get('identifier_1'))
-        by_identifier.setdefault(key, []).append(dish)
-    return by_identifier
+        key = make_patient_key(dish.get('patient_given_names'), dish.get('patient_name'))
+        by_name.setdefault(key, []).append(dish)
+    return by_name
 
 
-def find_matching_dishrecords(dishrecords, identifier_1):
-    identifier_1 = normalize(identifier_1)
+def find_matching_dishrecords(dishrecords, patient_given_names, patient_name):
+    patient_given_names = normalize(patient_given_names)
+    patient_name = normalize(patient_name)
     matches = []
 
     for dish in dishrecords:
-        if normalize(dish.get('identifier_1')) == identifier_1:
+        dish_given_names = normalize(dish.get('patient_given_names'))
+        dish_patient_name = normalize(dish.get('patient_name'))
+        if patient_given_names and patient_name:
+            matched = dish_given_names == patient_given_names and dish_patient_name == patient_name
+        elif patient_given_names:
+            matched = dish_given_names == patient_given_names
+        else:
+            matched = dish_patient_name == patient_name
+        if matched:
             matches.append(dish)
     return matches
-
-
-def merge_sessions_by_uuid(sessions):
-    merged = []
-    seen = set()
-    for session in sessions:
-        session_uuid = session.get('session_uuid')
-        key = session_uuid or id(session)
-        if key in seen:
-            continue
-        seen.add(key)
-        merged.append(session)
-    return merged
-
-
-def format_session_uuids(sessions):
-    session_uuids = []
-    for session in sessions:
-        session_uuid = session.get('session_uuid')
-        if session_uuid:
-            session_uuids.append(str(session_uuid))
-    return ','.join(session_uuids)
 
 
 def format_start_time(age_at_start):
@@ -328,8 +328,10 @@ def format_start_time(age_at_start):
     return '{:02d}.{:02d}'.format(seconds // 3600, (seconds % 3600) // 60)
 
 
-def make_video_filename(patient_given_names, patient_name, session_uuid, well_no, zid, age_at_start=None):
-    name_parts = [safe_filename(value) for value in [patient_given_names, patient_name] if (value or '').strip()]
+def make_video_filename(patient_given_names, patient_name, session_uuid, well_no, zid, age_at_start=None,
+                        identifier_1=None):
+    name_parts = [safe_filename(identifier_1)]
+    name_parts.extend(safe_filename(value) for value in [patient_given_names, patient_name] if (value or '').strip())
     name_parts.extend([
         safe_filename(session_uuid),
         'well{:02d}_zid{}_{}.mp4'.format(well_no, safe_filename(zid), format_start_time(age_at_start)),
@@ -338,8 +340,9 @@ def make_video_filename(patient_given_names, patient_name, session_uuid, well_no
 
 
 def download_one_video(client, patient_given_names, patient_name, session_uuid, well_no, zid,
-                       output_dir, overwrite, summary, progress, age_at_start=None):
-    filename = make_video_filename(patient_given_names, patient_name, session_uuid, well_no, zid, age_at_start)
+                       output_dir, overwrite, summary, progress, age_at_start=None, identifier_1=None):
+    filename = make_video_filename(patient_given_names, patient_name, session_uuid, well_no, zid,
+                                   age_at_start, identifier_1=identifier_1)
     output_path = os.path.join(output_dir, filename)
     try:
         result = client.download_video(session_uuid, well_no, zid, output_path, overwrite=overwrite)
@@ -375,7 +378,6 @@ def download_patient_videos(client, input_path, output_dir, overwrite=False,
 
         patient_given_names = target.get('patient_given_names')
         patient_name = target.get('patient_name')
-        identifier_1 = target.get('identifier_1')
         row_number = target.get('_row_number') or index + 1
         well_no = parse_well_no(target.get('no'))
         session_uuid = (target.get('session_uuid') or '').strip()
@@ -397,60 +399,69 @@ def download_patient_videos(client, input_path, output_dir, overwrite=False,
                     row_callback(index, total)
                 continue
             age_at_start = direct_sessions[0].get('age_at_start')
+            dish_uuid = direct_sessions[0].get('dish_uuid')
+            direct_dishes = client.get_dishrecord(dish_uuid) if dish_uuid else []
+            identifier_1 = direct_dishes[0].get('identifier_1') if len(direct_dishes) == 1 else None
+            if identifier_1 is None or not str(identifier_1).strip():
+                progress('warning', 'Excel 第 {} 行：无法确定病历号 ID1，文件名将使用 unknown: session_uuid={}'.format(
+                    row_number, session_uuid))
             for zid in VIDEO_ZIDS:
                 download_one_video(client, patient_given_names, patient_name, session_uuid, well_no, zid,
-                                   output_dir, overwrite, summary, progress, age_at_start=age_at_start)
+                                   output_dir, overwrite, summary, progress, age_at_start=age_at_start,
+                                   identifier_1=identifier_1)
             if row_callback:
                 row_callback(index, total)
             continue
 
-        matches = find_matching_dishrecords(dishrecords, identifier_1)
+        matches = find_matching_dishrecords(dishrecords, patient_given_names, patient_name)
 
         if not matches:
             summary['not_found'] += 1
-            progress('warning', 'Excel 第 {} 行：当前服务器未找到 dish，已跳过: 病历号={} well{:02d}'.format(
-                row_number, identifier_1, well_no))
+            progress('warning', 'Excel 第 {} 行：当前服务器未找到 dish，已跳过: {} {} well{:02d}'.format(
+                row_number, patient_given_names, patient_name, well_no))
             if row_callback:
                 row_callback(index, total)
             continue
-        dish_uuids = []
+        if len(matches) > 1:
+            summary['failed'] += 1
+            progress('error', 'Excel 第 {} 行：查询到重复的数据，为避免配对错误已跳过该患者。可以在 Excel 添加一列 session_uuid，用来匹配正确的数据: {} {} well{:02d}, dish 数量={}'.format(
+                row_number, patient_given_names, patient_name, well_no, len(matches)))
+            if row_callback:
+                row_callback(index, total)
+            continue
+
         for dish in matches:
             dish_uuid = dish.get('dish_uuid')
-            if dish_uuid and dish_uuid not in dish_uuids:
-                dish_uuids.append(dish_uuid)
-
-        sessions = []
-        for dish_uuid in dish_uuids:
-            dish_sessions = client.get_sessionrecords(dish_uuid)
-            sessions.extend(dish_sessions)
-        sessions = merge_sessions_by_uuid(sessions)
-
-        if not sessions:
-            summary['no_session'] += 1
-            progress('warning', 'Excel 第 {} 行：当前服务器未找到 session，已跳过: 病历号={} dish_uuid={}'.format(
-                row_number, identifier_1, ','.join(dish_uuids)))
-            if row_callback:
-                row_callback(index, total)
-            continue
-        if len(sessions) > 1:
-            summary['failed'] += 1
-            progress('error', 'Excel 第 {} 行：查询到重复的 session {} 条，为避免配对错误已跳过该患者。可以在 Excel 添加一列 session_uuid，用来匹配正确的数据: 病历号={} dish_uuid={} session_uuid={}'.format(
-                row_number, len(sessions), identifier_1, ','.join(dish_uuids), format_session_uuids(sessions)))
-            if row_callback:
-                row_callback(index, total)
-            continue
-
-        for session in sessions:
-            session_uuid = session.get('session_uuid')
-            if not session_uuid:
+            identifier_1 = dish.get('identifier_1')
+            if identifier_1 is None or not str(identifier_1).strip():
+                progress('warning', 'Excel 第 {} 行：病历号 ID1 为空，文件名将使用 unknown: dish_uuid={}'.format(
+                    row_number, dish_uuid))
+            sessions = client.get_sessionrecords(dish_uuid)
+            if not sessions:
                 summary['no_session'] += 1
-                progress('warning', 'Excel 第 {} 行：sessionrecord 缺少 session_uuid，已跳过: 病历号={} dish_uuid={}'.format(
-                    row_number, identifier_1, ','.join(dish_uuids)))
+                progress('warning', 'Excel 第 {} 行：当前服务器未找到 session，已跳过: {} {} dish_uuid={}'.format(
+                    row_number, patient_given_names, patient_name, dish_uuid))
                 continue
-            age_at_start = session.get('age_at_start')
-            for zid in VIDEO_ZIDS:
-                download_one_video(client, patient_given_names, patient_name, session_uuid, well_no, zid,
-                                   output_dir, overwrite, summary, progress, age_at_start=age_at_start)
+            if len(sessions) > 1:
+                summary['failed'] += 1
+                progress('error', 'Excel 第 {} 行：查询到重复的数据，为避免配对错误已跳过该患者。可以在 Excel 添加一列 session_uuid，用来匹配正确的数据: {} {} dish_uuid={}, session 数量={}'.format(
+                    row_number, patient_given_names, patient_name, dish_uuid, len(sessions)))
+                if row_callback:
+                    row_callback(index, total)
+                continue
+
+            for session in sessions:
+                session_uuid = session.get('session_uuid')
+                if not session_uuid:
+                    summary['no_session'] += 1
+                    progress('warning', 'Excel 第 {} 行：sessionrecord 缺少 session_uuid，已跳过: {} {} dish_uuid={}'.format(
+                        row_number, patient_given_names, patient_name, dish_uuid))
+                    continue
+                age_at_start = session.get('age_at_start')
+                for zid in VIDEO_ZIDS:
+                    download_one_video(client, patient_given_names, patient_name, session_uuid, well_no, zid,
+                                       output_dir, overwrite, summary, progress, age_at_start=age_at_start,
+                                       identifier_1=identifier_1)
 
         if row_callback:
             row_callback(index, total)
@@ -487,8 +498,8 @@ class DownloadPatientVideosApp:
 
         help_text = (
             "使用说明：\n"
-            "1. Excel 必须包含表头 [病历号]、[no], 其中 [女方姓名]、[男方姓名]、[session_uuid] 为可选表头。\n"
-            "2. [病历号] 需与 GCA dishrecords 的 [identifier_1] 数据保持一致。\n"
+            "1. Excel 必须包含表头 [女方姓名]、[男方姓名]、[no], 其中 [session_uuid] 为可选表头。\n"
+            "2. 女方姓名]、[男方姓名] 需与 GCA 患者页面的 [名字]、[姓氏] 表头数据保持一致。\n"
             "3. [no] 为必填项，表示位孔编号。\n"
             "4. 如程序查询到重复数据，将自动跳过该行并标红提示。请在 Excel 中补充[session_uuid]列后重新点击预检并下载，以避免匹配到错误数据。"
         )
@@ -693,4 +704,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
