@@ -11,6 +11,7 @@ import tempfile
 import threading
 import time
 import tkinter as tk
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from tkinter import filedialog, ttk
 from urllib.parse import urljoin
 
@@ -22,7 +23,7 @@ from requests.exceptions import RequestException
 TOKEN_PATH = '/geri_connect/auth/v1/token'
 PUBLIC_API_PREFIX = '/geri_connect/public/api/v1'
 VIDEO_PATH = '/files/video.json/{session_uuid}/well{well_no:02d}_zid{zid}.mp4'
-VIDEO_ZIDS = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '99']
+VIDEO_ZIDS = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11'] # 不下载zid99
 DEFAULT_REQUEST_TIMEOUT = 30
 DEFAULT_DOWNLOAD_TIMEOUT = 300
 INPUT_COLUMN_ALIASES = {
@@ -105,12 +106,13 @@ class CandlePublicClient:
 
         url = urljoin(self.base_url, VIDEO_PATH.format(session_uuid=session_uuid, well_no=well_no, zid=zid))
         try:
-            response = self.s.get(url, stream=True, verify=False, timeout=self.download_timeout)
-            response.raise_for_status()
-            with open(output_path, 'wb') as video_file:
-                for chunk in response.iter_content(chunk_size=1024 * 1024):
-                    if chunk:
-                        video_file.write(chunk)
+            with requests.get(url, headers=self.s.headers.copy(), stream=True,
+                              verify=False, timeout=self.download_timeout) as response:
+                response.raise_for_status()
+                with open(output_path, 'wb') as video_file:
+                    for chunk in response.iter_content(chunk_size=1024 * 1024):
+                        if chunk:
+                            video_file.write(chunk)
         except RequestException as ex:
             raise RuntimeError(ex)
         return 'downloaded'
@@ -330,39 +332,54 @@ def format_session_uuids(sessions):
 
 def format_start_time(age_at_start):
     if age_at_start is None or age_at_start == '':
-        return '00.00'
+        return '00：00'
 
     try:
         seconds = int(float(age_at_start))
     except (TypeError, ValueError):
-        return '00.00'
-    return '{:02d}.{:02d}'.format(seconds // 3600, (seconds % 3600) // 60)
+        return '00：00'
+    return '{:02d}：{:02d}'.format(seconds // 3600, (seconds % 3600) // 60)
 
 
 def make_video_filename(patient_given_names, patient_name, session_uuid, well_no, zid, age_at_start=None,
                         identifier_1=None):
-    name_parts = [safe_filename(identifier_1)]
-    name_parts.extend(safe_filename(value) for value in [patient_given_names, patient_name] if (value or '').strip())
-    name_parts.extend([
-        safe_filename(session_uuid),
-        'well{:02d}_zid{}_{}.mp4'.format(well_no, safe_filename(zid), format_start_time(age_at_start)),
-    ])
-    return '-'.join(name_parts)
+    name_parts = [
+        safe_filename(identifier_1),
+        'well{:02d}'.format(well_no),
+        'zid{}'.format(safe_filename(zid)),
+        safe_filename(patient_given_names),
+        safe_filename(patient_name),
+        format_start_time(age_at_start),
+    ]
+    return '_'.join(name_parts) + '.mp4'
 
 
 def download_one_video(client, patient_given_names, patient_name, session_uuid, well_no, zid,
-                       output_dir, overwrite, summary, progress, age_at_start=None, identifier_1=None):
+                       output_dir, overwrite, age_at_start=None, identifier_1=None):
     filename = make_video_filename(patient_given_names, patient_name, session_uuid, well_no, zid,
                                    age_at_start, identifier_1=identifier_1)
     output_path = os.path.join(output_dir, filename)
     try:
         result = client.download_video(session_uuid, well_no, zid, output_path, overwrite=overwrite)
-        summary[result] += 1
-        progress('info', '{} {}'.format('已跳过' if result == 'skipped' else '已下载', output_path))
+        return result, 'info', '{} {}'.format('已跳过' if result == 'skipped' else '已下载', output_path)
     except Exception as ex:
-        summary['failed'] += 1
-        progress('error', '下载失败: {} {} session_uuid={} well{:02d} zid{}: {}'.format(
-            patient_given_names, patient_name, session_uuid, well_no, zid, ex))
+        return 'failed', 'error', '下载失败: {} {} session_uuid={} well{:02d} zid{}: {}'.format(
+            patient_given_names, patient_name, session_uuid, well_no, zid, ex)
+
+
+def download_session_videos(client, patient_given_names, patient_name, session_uuid, well_no,
+                            output_dir, overwrite, summary, progress, age_at_start=None, identifier_1=None):
+    with ThreadPoolExecutor(max_workers=5) as executor:
+        futures = [
+            executor.submit(download_one_video, client, patient_given_names, patient_name,
+                            session_uuid, well_no, zid, output_dir, overwrite,
+                            age_at_start=age_at_start, identifier_1=identifier_1)
+            for zid in VIDEO_ZIDS
+        ]
+        for future in as_completed(futures):
+            result, level, message = future.result()
+            summary[result] += 1
+            progress(level, message)
 
 
 def download_patient_videos(client, input_path, output_dir, overwrite=False,
@@ -411,10 +428,9 @@ def download_patient_videos(client, input_path, output_dir, overwrite=False,
                     row_callback(index, total)
                 continue
             age_at_start = direct_sessions[0].get('age_at_start')
-            for zid in VIDEO_ZIDS:
-                download_one_video(client, patient_given_names, patient_name, session_uuid, well_no, zid,
-                                   output_dir, overwrite, summary, progress, age_at_start=age_at_start,
-                                   identifier_1=identifier_1)
+            download_session_videos(client, patient_given_names, patient_name, session_uuid, well_no,
+                                    output_dir, overwrite, summary, progress, age_at_start=age_at_start,
+                                    identifier_1=identifier_1)
             if row_callback:
                 row_callback(index, total)
             continue
@@ -463,10 +479,9 @@ def download_patient_videos(client, input_path, output_dir, overwrite=False,
                     row_number, identifier_1, ','.join(dish_uuids)))
                 continue
             age_at_start = session.get('age_at_start')
-            for zid in VIDEO_ZIDS:
-                download_one_video(client, patient_given_names, patient_name, session_uuid, well_no, zid,
-                                   output_dir, overwrite, summary, progress, age_at_start=age_at_start,
-                                   identifier_1=identifier_1)
+            download_session_videos(client, patient_given_names, patient_name, session_uuid, well_no,
+                                    output_dir, overwrite, summary, progress, age_at_start=age_at_start,
+                                    identifier_1=identifier_1)
 
         if row_callback:
             row_callback(index, total)
@@ -709,4 +724,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
