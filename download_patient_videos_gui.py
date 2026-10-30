@@ -363,8 +363,7 @@ def make_video_filename(patient_given_names, patient_name, session_uuid, well_no
         'zid{}'.format(safe_filename(zid)),
     ]
     # 不要姓名                    
-    # name_parts.extend(safe_filename(value) for value in [patient_given_names, patient_name]
-                      if value is not None and str(value).strip())
+    # name_parts.extend(safe_filename(value) for value in [patient_given_names, patient_name] if value is not None and str(value).strip())
     name_parts.append(format_start_time(age_at_start))
     return '_'.join(name_parts) + '.mp4'
 
